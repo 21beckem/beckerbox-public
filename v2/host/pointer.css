@@ -1,0 +1,28 @@
+.pointer div {
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    background-color: black;
+    mask: url('img/pointer_outline.png') 0px 0px subtract;
+}
+.pointer {
+    pointer-events: none;
+    position: fixed;
+    transform: translate(-50%, 0);
+    margin: 0;
+    padding: 0;
+    width: 65px;
+    height: 65px;
+    mask-composite: subtract;
+}
+.pointer svg {
+    width: 100%;
+    height: 100%;
+    z-index: 9999999;
+}
+.P1.pointer svg .fill-color { stop-color: #1f8cfa; }
+.P2.pointer svg .fill-color { stop-color: #f84a3c; }
+.P3.pointer svg .fill-color { stop-color: #2ea463; }
+.P4.pointer svg .fill-color { stop-color: #fbb432; }

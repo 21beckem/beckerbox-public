@@ -4,10 +4,13 @@ if (!window.electron && !window.location.host.startsWith('localhost')) {
 }
 
 // set version info
-document.getElementById('version').innerText = [
-    'Remotes: ' + location.pathname.split('/').find(x => x.startsWith('v')),
-    'Software: ' + location.pathname.split('/').find(x => x.startsWith('v'))
-].join(' | ');
+window.electron && window.electron.info.getVersions().then(versions => {
+    document.getElementById('version').innerHTML = [
+        'Remote: v' + versions.remote,
+        'Software: v' + versions.software,
+        'API: v' + versions.api
+    ].join('<br>');
+});
 
 
 import PlayerManager from './player_manager.js';

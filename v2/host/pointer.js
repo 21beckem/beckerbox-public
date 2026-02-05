@@ -7,14 +7,13 @@ export default class Pointer {
         this.hoveredElements = [];
         this.DIV = document.createElement('div');
         this.DIV.setAttribute('class', `P${slot+1} pointer`);
-        this.DIV.appendChild(document.createElement('div'));
+        this.DIV.innerHTML = document.getElementById('pointersInnerHtmlTemplate').innerHTML.replaceAll('{REPLACE_WITH_ID}', `pointer-svg-${slot}`);
         document.body.appendChild(this.DIV);
         this.center();
 
         this.playerManager.pointerClicks[slot] = false;
     }
     clickAtPointer() {
-        return;
         console.log(`click! (${this.slot})`);
         this.playerManager.pointerClicks[this.slot] = true;
         this.hoveredElements[0]?.click();
@@ -40,9 +39,9 @@ export default class Pointer {
     }
     moveTo(x, y) {
         this.pos = { x: x, y: y };
-        // this.DIV.style.left = `${x}px`;
-        // this.DIV.style.top = `${y}px`;
-        // this.handleMoveEvents();
+        this.DIV.style.left = `${x}px`;
+        this.DIV.style.top = `${y}px`;
+        this.handleMoveEvents();
     }
     rotateTo(angle) {
         this.DIV.style.transform = `rotate(${angle}deg)`;
@@ -57,17 +56,17 @@ export default class Pointer {
             x: Math.min(Math.max(this.pos.x, 0), document.documentElement.clientWidth),
             y: Math.min(Math.max(this.pos.y, 0), document.documentElement.clientHeight)
         };
-        // this.DIV.style.left = `${this.pos.x}px`;
-        // this.DIV.style.top = `${this.pos.y}px`;
-        // this.handleMoveEvents();
+        this.DIV.style.left = `${this.pos.x}px`;
+        this.DIV.style.top = `${this.pos.y}px`;
+        this.handleMoveEvents();
     }
     get AnalogX() { return (this.pos.x / document.documentElement.clientWidth) * 255; }
     get AnalogY() { return (this.pos.y / document.documentElement.clientHeight) * 255; }
     handleMoveEvents() {
-        return;
         let oldEls = [...this.hoveredElements];
         this.hoveredElements = [];
         document.elementsFromPoint(this.pos.x, this.pos.y).forEach(el => {
+            if (!el.classList.contains('pointer-clickable')) return;
             if (el.tagName != 'BUTTON') return;
             if (el.classList.contains('pointer')) return;
             if (oldEls.includes(el)) {
