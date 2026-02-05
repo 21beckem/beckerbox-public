@@ -81,6 +81,13 @@ main {
     font-size: 18px;
     color: #777;
     padding: 0 10px;
+    text-shadow: 0 0 0px rgba(255, 255, 0, 0);
+    transition: text-shadow 0.5s ease;
+}
+.subtitle.highlight-change {
+    /* State when text changes: bright shadow */
+    text-shadow: 0 0 10px rgb(255 118 0);
+    transition: none; /* Instant apply on class add */
 }
 
 
@@ -171,6 +178,64 @@ button.primary {
 button.padding {
     padding: 1.5rem 1.5rem;
 }
+
+.loader-container {
+    display: flex;
+    flex-direction: column;
+    pointer-events: none;
+    opacity: 0;
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    z-index: 9999999;
+    background-color: rgba(255, 255, 255, 0.7);
+    justify-content: center;
+    align-items: center;
+    height: 100%;
+    transition: opacity 0.2s ease;
+    &.active {
+        pointer-events: auto;
+        opacity: 1;
+    }
+    .msg {
+        font-size: 1.2rem;
+        margin-top: 1rem;
+    }
+    .loader {
+        width: 150px;
+        height: 150px;
+        background-color: #75d1f2;
+        border-radius: 50%;
+        position: relative;
+        box-shadow: 0 0 20px 3px rgba(0, 0, 0, 0.5) inset,
+        0 5px 12px rgba(0, 0, 0, 0.15);
+        overflow: hidden;
+    }
+    .loader:before,
+    .loader:after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        border-radius: 45%;
+        top: -40%;
+        background-color: #fff;
+        animation: wave 5s linear infinite;
+    }
+    .loader:before {
+        border-radius: 30%;
+        background: rgba(255, 255, 255, 0.4);
+        animation: wave 5s linear infinite;
+    }
+}
+@keyframes wave {
+    0% {
+        transform: rotate(0);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
     </style>
 </head>
 <body>
@@ -185,13 +250,39 @@ button.padding {
             <span class="title" id="page-title">Please verify your purchase</span>
             <span class="subtitle" id="page-subtitle"></span>
             <div class="content">
-                <br><br>
-                <input type="text" id="licenseKey" style="padding: 1rem; text-align: center; margin: 0 auto; width: 50%;" placeholder="Enter your license key here">
                 <br>
-                <button class="primary" style="padding: 1rem 2.5rem; margin: 0 auto;" onclick="submitLicense()">Submit</button>
+                <div class="content" id="input-key-container">
+                    <input type="text" id="licenseKey" style="padding: 1rem; text-align: center; margin: 0 auto; width: 50%;" placeholder="Enter your license key here">
+                    <br>
+                    <button class="primary" style="padding: 1rem 2.5rem; margin: 0 auto;" onclick="submitLicense()">Submit</button>
+                </div>
+                <div class="content" id="confirm-transfer-container" style="display: none;">
+                    <span style="text-align: center; display: block; opacity: 0.7;">
+                        By transfering your license to this device, it will be deactivated on the previous device.
+                        <br>
+                        Would you like to continue?
+                    </span>
+                    <br><br>
+                    <div style="display: flex; flex-direction: row; justify-content: center; gap: 20px; width: 100%;">
+                        <button class="secondary" style="width: 30vw; padding: 1rem 2.5rem;" onclick="updateUI({
+                            success: false,
+                            reason: 'transfer cancelled',
+                            message: 'License transfer cancelled.',
+                            request: validity.request
+                        })">No</button>
+                        <button class="primary" style="width: 30vw; padding: 1rem 2.5rem;" onclick="confirmTransfer()">Yes</button>
+                    </div>
+                </div>
+                <div class="content" id="success-container" style="display: none;">
+                    <i class="fa-regular fa-circle-check" style="font-size: 10rem; color: green; display: block; text-align: center;"></i>
+                </div>
             </div>
         </div>
     </main>
+    <div class="loader-container">
+        <div class="loader"></div>
+        <div class="msg"></div>
+    </div>
 
     <footer>
         <div class="buttons-left"></div>
@@ -199,12 +290,83 @@ button.padding {
     </footer>
 
         <script>
-document.getElementById('page-subtitle').textContent = new URLSearchParams(location.search).get('msg') || '';
+let validity = JSON.parse(new URLSearchParams(location.search).get('validity') || 'null');
+if (validity === null)
+    validity = {
+        success: false,
+        reason: 'unknown',
+        message: 'An unknown error occurred while launching or verifying your license. Please contact support.',
+        devNotes: 'the "validity" query parameter was not provided or could not be parsed'
+    };
 
+
+const keyInputContainer = document.getElementById('input-key-container');
+const confirmTransferContainer = document.getElementById('confirm-transfer-container');
+const successContainer = document.getElementById('success-container');
+const pageTitle = document.getElementById('page-title');
+const pageSubtitle = document.getElementById('page-subtitle');
+function updateUI(thisValidity=false) {
+    if (thisValidity !== false)
+        validity = thisValidity;
+    console.log('License validity:', validity);
+
+    pageSubtitle.classList.remove('highlight-change');
+    pageSubtitle.classList.add('highlight-change');
+    setTimeout(() => {
+        pageSubtitle.classList.remove('highlight-change');
+    }, 100);
+
+    if (validity.success) {
+        keyInputContainer.style.display = 'none';
+        confirmTransferContainer.style.display = 'none';
+        successContainer.style.display = 'block';
+        pageTitle.textContent = 'License Verified';
+        pageSubtitle.textContent = validity.message + ' Launching BeckerBox...';
+
+        setTimeout(() => {
+            window.close();
+        }, 2000);
+        return;
+    }
+
+    if (validity.reason === 'wrong seat') {
+        keyInputContainer.style.display = 'none';
+        confirmTransferContainer.style.display = 'flex';
+        successContainer.style.display = 'none';
+        pageTitle.textContent = 'License Transfer Required';
+    } else if (validity.reason === 'invalid') {
+        keyInputContainer.style.display = 'flex';
+        confirmTransferContainer.style.display = 'none';
+        successContainer.style.display = 'none';
+        pageTitle.textContent = 'Your license key is invalid';
+    } else {
+        keyInputContainer.style.display = 'flex';
+        confirmTransferContainer.style.display = 'none';
+        successContainer.style.display = 'none';
+        pageTitle.textContent = 'Please verify your purchase';
+    }
+
+    pageSubtitle.textContent = validity.message;
+}
+updateUI();
+
+const loaderContainer = document.querySelector('.loader-container');
+const msgElement = document.querySelector('.loader-container .msg');
 let currentlySubmitting = false;
+function setLoading(isLoading, message='Please wait...') {
+    if (isLoading) {
+        msgElement.textContent = message;
+        loaderContainer.classList.add('active');
+        currentlySubmitting = true;
+    } else {
+        loaderContainer.classList.remove('active');
+        msgElement.textContent = '';
+        currentlySubmitting = false;
+    }
+}
 async function submitLicense() {
     if (currentlySubmitting) return;
-    currentlySubmitting = true;
+    setLoading(true, 'Validating license key...');
 
     const licenseKey = document.getElementById('licenseKey').value;
     if (!licenseKey) {
@@ -213,19 +375,29 @@ async function submitLicense() {
         });
         return;
     }
-    let result = await window.electron.auth.submitLicenseKey(licenseKey);
+    let result = await window.electron.auth.submitLicenseKey(licenseKey, false);
     
-    if (result===true) {
-        JSAlert.alert('License key accepted!', 'Success', JSAlert.Icons.Success);
-        setTimeout(() => {
-            window.close();
-        }, 1000);
-    } else {
-        JSAlert.alert('License key invalid. Please try again.', 'Failed', JSAlert.Icons.Failed);
-    }
+    updateUI(result);
 
-    currentlySubmitting = false;
+    setLoading(false);
 }
+
+async function confirmTransfer() {
+    if (currentlySubmitting) return;
+    setLoading(true, 'Transferring license...');
+    
+    updateUI(await window.electron.auth.submitLicenseKey(validity.request.key, true));
+
+    setLoading(false);
+}
+
+
+// add event listener for enter key on license key input
+document.getElementById('licenseKey').addEventListener('keydown', function(event) {
+    if (event.key === 'Enter') {
+        submitLicense();
+    }
+});
     </script>
 </body>
 </html>
