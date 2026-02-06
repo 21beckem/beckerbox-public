@@ -16,11 +16,11 @@
     width: 65px;
     height: 65px;
     mask-composite: subtract;
+    z-index: 9999999;
 }
 .pointer svg {
     width: 100%;
     height: 100%;
-    z-index: 9999999;
 }
 .P1.pointer svg .fill-color { stop-color: #1f8cfa; }
 .P2.pointer svg .fill-color { stop-color: #f84a3c; }

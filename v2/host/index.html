@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>BeckerBox</title>
+	<script src="../js/jsalert.js"></script>
+    <script src="fake-electron.js"></script>
     <script src="qrcode.min.js"></script>
     <link rel="stylesheet" href="pointer.css">
     <style>
@@ -156,6 +158,21 @@ main {
     100% {
         transform: translate(-50%, -50%) rotate(360deg);
     }
+}
+
+#demo-mode-stamp {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) rotate(-25deg) scale(1.5);
+    opacity: 0.2;
+    font-family: 'Wii', sans-serif;
+    font-size: min(10vw, 10rem);
+    color: gray;
+    text-shadow: 0px 0px 5px black;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 99999999999999999999999999999999999999999999999999999999999;
 }
 
 #remoteStatuses {
@@ -373,6 +390,7 @@ main {
             </div>
         </section>
     </main>
+    <div id="demo-mode-stamp">DEMO MODE</div>
 
     <div id="pointersInnerHtmlTemplate" style="display: none;">
         <svg xmlns="http://www.w3.org/2000/svg"version="1.1" viewBox="0 0 2122 2122" xml:space="preserve">
