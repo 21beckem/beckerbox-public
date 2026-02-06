@@ -24,10 +24,17 @@ const PlayerManager = new (class PlayerManager {
         // tell the backend that we are ready
         window.electron?.init();
 
-        this.peer = new Peer(null, {
-            host: 'peerjs.beckersuite.com',
-            secure: true
-        });
+        if (window.location.hostname === 'localhost')
+            this.peer = new Peer(null, {
+                host: 'peerjs.beckersuite.com',
+                secure: true
+            });
+        else
+            this.peer = this.peer = new Peer(null, {
+                host: 'peerjs.beckersuite.com',
+                secure: true
+            });
+
         this.peer.on('open', (id) => {
             this.#setQrCode(id);
         });

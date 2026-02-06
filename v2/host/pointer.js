@@ -7,7 +7,7 @@ export default class Pointer {
         this.hoveredElements = [];
         this.DIV = document.createElement('div');
         this.DIV.setAttribute('class', `P${slot+1} pointer`);
-        this.DIV.innerHTML = document.getElementById('pointersInnerHtmlTemplate').innerHTML.replaceAll('{REPLACE_WITH_ID}', `pointer-svg-${slot}`);
+        this.DIV.innerHTML = `<div class="pointer-inner"></div>`;
         document.body.appendChild(this.DIV);
         this.center();
 
