@@ -6,6 +6,7 @@ if (window.electron === undefined) {
         };
     });
     window.electron = {
+        FAKE: true, // used to detect if we're running in fake electron mode
         init: () => {
             return true;
         },

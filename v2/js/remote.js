@@ -54,7 +54,10 @@ class Remote {
 	searchParams = new URLSearchParams(window.location.search);
 	constructor(code) {
 		this.GUI = new RemoteGui(this);
-		this.peer = new Peer(null);
+		this.peer = new Peer(null, {
+			host: 'peerjs.beckersuite.com',
+			secure: true
+		});
 		this.GUI.setConnectingStatus(status.connecting);
 		this.peer.on('open', () => {
 			// attempt to connect

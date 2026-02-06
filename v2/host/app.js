@@ -1,4 +1,9 @@
-window.DEMOMODE = !window.location.host.startsWith('localhost') && !window.electron;
+window.DEMOMODE = !window.location.host.startsWith('localhost') && (!window.electron || window.electron.FAKE);
+
+if (window.DEMOMODE) {
+    console.warn('Running in demo mode. This is not intended for production use and may not work as expected.');
+    document.getElementById('demo-mode-stamp').style.display = 'block';
+}
 
 // set version info
 window.electron && window.electron.info.getVersions().then(versions => {

@@ -1,5 +1,4 @@
 import Player from './player.js';
-import { Peer } from 'https://esm.sh/peerjs@1.5.5?bundle-deps';
 
 // manage players
 const PlayerManager = new (class PlayerManager {
@@ -25,10 +24,10 @@ const PlayerManager = new (class PlayerManager {
         // tell the backend that we are ready
         window.electron?.init();
 
-        if (window.location.hostname === 'localhost')
-            this.peer = new Peer('beckerbox');
-        else
-            this.peer = new Peer();
+        this.peer = new Peer(null, {
+            host: 'peerjs.beckersuite.com',
+            secure: true
+        });
         this.peer.on('open', (id) => {
             this.#setQrCode(id);
         });
