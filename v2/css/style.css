@@ -135,6 +135,7 @@ html:fullscreen #openFullScreenPrompt {
 
 .top-nav {
 	position: absolute;
+	pointer-events: none;
 	top: 0;
 	left: 10px;
 	right: 20px;
@@ -142,6 +143,9 @@ html:fullscreen #openFullScreenPrompt {
 	justify-content: space-between;
 	font-size: 25px;
 	z-index: 10;
+}
+.top-nav * {
+	pointer-events: all;
 }
 .top-nav #menuBarsBtn {
 	padding: 10px;

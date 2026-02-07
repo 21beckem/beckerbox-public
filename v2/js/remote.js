@@ -217,8 +217,8 @@ class Remote {
 const _ = (x) => document.getElementById(x);
 class RemoteGui {
 	remoteLayouts = ['Classic', 'Driver', 'Split'];
-	remoteLayout = 1;
-	handDominance = 'right';
+	remoteLayout = sessionStorage.getItem('last-remote-layout') || 1;
+	handDominance = sessionStorage.getItem('last-hand-dominance') || 'right';
 
 	b_states = [0, 0];
 	Remote = null;
@@ -231,7 +231,7 @@ class RemoteGui {
 		_('handDominanceBtn').addEventListener('click', () => this.#toggleHandDominance());
 		_('PowerOffBtn').addEventListener('click', () => this.#powerOff());
 		this.#setBposition();
-		this.#toggleHandDominance('right');
+		this.#toggleHandDominance(this.handDominance);
 		window.addEventListener('resize', this.#setBposition);
 
 		// add haptic feedback for all buttons and ensure the page is in fullscreen
@@ -387,6 +387,7 @@ class RemoteGui {
 		this.remoteLayout++;
 		if (this.remoteLayout > this.remoteLayouts.length) this.remoteLayout = 1;
 		this.showRemotePage();
+		sessionStorage.setItem('last-remote-layout', this.remoteLayout);
 	}
 	#toggleHandDominance(setTo=null) {
 		if (setTo)
@@ -397,6 +398,7 @@ class RemoteGui {
 		document.documentElement.style.setProperty('--bBtn-show-left',  (this.handDominance==='right' ? 'flex' : 'none'));
 		document.documentElement.style.setProperty('--bBtn-show-right', (this.handDominance==='right' ? 'none' : 'flex'));
 		this.#updateSideMenuText();
+		sessionStorage.setItem('last-hand-dominance', this.handDominance);
 	}
 	
 	#openMenu() { _('side-menu').classList.remove('closed'); }
