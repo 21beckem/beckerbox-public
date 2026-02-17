@@ -357,6 +357,10 @@ class RemoteGui {
 			JSAlert.alert('Please switch to the system menu (Wii Menu) before changing discs.', 'Failed to get disc list', JSAlert.Icons.Failed);
 			return;
 		}
+		if (discs.length === 0) {
+			JSAlert.alert('Your games folder is empty. Please go to the BeckerBox menu and click "Open Games Folder", then place your game files in the folder that opens', 'No Discs Found', JSAlert.Icons.Info);
+			return;
+		}
 
 		let discPath = await window.selectSwiper.prompt(
 			Object.fromEntries(
@@ -373,14 +377,19 @@ class RemoteGui {
 		let confirmed = await JSAlert.confirm('Are you sure you want to power off the BeckerBox?', 'Power Off', JSAlert.Icons.Warning)
 		if (!confirmed) return;
 		let loader = JSAlert.loader("Powering off...");
+
 		try {
-			await this.Remote.powerOff();
+			let result = await this.Remote.powerOff();
 			loader.dismiss();
-			this.Remote.destroy();
-			this.alertPowerOff();
+			if (result !== false) {
+				this.Remote.destroy();
+				this.alertPowerOff();
+			} else {
+				JSAlert.alert('Please switch to the system menu (Wii Menu) before you try to power off', 'Failed to power off', JSAlert.Icons.Failed);
+			}
+			
 		} catch (e) { 
-			JSAlert.alert('Please switch to the system menu (Wii Menu) before you try to power off', 'Failed to power off', JSAlert.Icons.Failed);
-			loader.dismiss();
+			JSAlert.alert('BeckerBox returned an error while powering off. Please try again.', 'Request failed', JSAlert.Icons.Failed);
 		}
 	}
 	#changeLayout() {

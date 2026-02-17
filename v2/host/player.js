@@ -74,8 +74,10 @@ export default class Player {
                         window.electron?.powerOff()
                             .then(result => {
                                 this.conn.send({result});
-                                if (result) this.#alertedAboutPowerOff = true;
-                                this.parent.alertPowerOff();
+                                if (result) {
+                                    this.#alertedAboutPowerOff = true;
+                                    this.parent.alertPowerOff();
+                                }
                             });
                         break;
                 }

@@ -240,6 +240,9 @@
                     N = arguments.length > 1 && void 0 !== arguments[1] ? arguments[1] : "";
                 super(), this.elems = {}, this.title = N, this.text = M, this.buttons = [], this.textFields = [], this.result = !1, this.iconURL = null, this.cancelable = !0, this.cancelled = !1, this.dismissed = !1
             }
+            get isDarkMode() {
+                return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            }
             setIcon(M) {
                 this.iconURL = M
             }
@@ -282,24 +285,43 @@
                 this.createBackground(), this.createPopup(), window.addEventListener("keydown", this)
             }
             createBackground() {
-                this.elems.background = document.createElement("div"), this.elems.background.style.cssText = "position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 9000000000000; background-color: rgba(0, 0, 0, 0.3); opacity: 0; transition: opacity 0.15s; ", document.body.appendChild(this.elems.background), setTimeout((() => {
-                    this.elems.background.offsetWidth, this.elems.background.style.opacity = 1
-                }), 0)
+                let background = (this.isDarkMode) ? 'rgba(51, 51, 51, 0.3)' : 'rgba(0, 0, 0, 0.3)';
+                this.elems.background = document.createElement("div");
+                this.elems.background.style.cssText = `position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 9000000000000; background-color: ${background}; opacity: 0; transition: opacity 0.15s;`;
+                document.body.appendChild(this.elems.background);
+                setTimeout((() => {
+                    this.elems.background.offsetWidth;
+                    this.elems.background.style.opacity = 1;
+                }), 0);
             }
             createPopup() {
+                let cssVars = (this.isDarkMode) ? `
+                    --jsalert-background-color: rgb(36,36,36);
+                    --jsalert-background-color-off: rgba(44,44,44, 0.95);
+                    --jsalert-color: rgb(255,255,255);
+                    --jsalert-color-off: rgba(255,255,255, 0.5);
+                ` : `
+                    --jsalert-background-color: rgb(255,255,255);
+                    --jsalert-background-color-off: rgba(255,255,255, 0.95);
+                    --jsalert-color: rgb(0,0,0);
+                    --jsalert-color-off: rgba(0,0,0, 0.5);
+                `;
+                let boxShadow = (this.isDarkMode) ?
+                    '0 0 40px black' :
+                    '0 0 20px rgba(0, 0, 0, 0.25)';
 				let buttonsParentStyle = (window.innerWidth < 550) ? ' flex-direction: column;' : '';
 				let buttonsStyle = (window.innerWidth < 550) ? ' padding: 10px;' : ' padding: 10px 20px 0px;';
-				this.elems.container = document.createElement("div"), this.elems.container.focusable = !0, this.elems.container.style.cssText = "position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 9000000000001; display: flex; justify-content: center; align-items: center; opacity: 0; transform: translateY(-40px); transition: opacity 0.15s, transform 0.15s; ", document.body.appendChild(this.elems.container), setTimeout((() => {
+				this.elems.container = document.createElement("div"), this.elems.container.focusable = !0, this.elems.container.style.cssText = `position: fixed; top: 0px; left: 0px; width: 100%; height: 100%; z-index: 9000000000001; display: flex; justify-content: center; align-items: center; opacity: 0; transform: translateY(-40px); transition: opacity 0.15s, transform 0.15s; ${cssVars}`, document.body.appendChild(this.elems.container), setTimeout((() => {
 					this.elems.container.offsetWidth, this.elems.container.style.opacity = 1, this.elems.container.style.transform = "translateY(0px)"
 				}), 0), this.addTouchHandler(this.elems.container, (() => {
 					this.cancelable && (this.cancelled = !0, this.dismiss())
-				})), this.elems.window = document.createElement("div"), this.elems.window.classList.add('pixel-corners-4-6'), this.elems.window.style.cssText = "position: relative; background-color: rgba(255, 255, 255, 0.95); box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.25); border-radius: 8px; padding: 10px; min-width: 50px; min-height: 10px; max-width: 80%; max-height: 90%; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); ", this.elems.container.appendChild(this.elems.window), this.iconURL && (this.elems.icon = document.createElement("img"), this.elems.icon.style.cssText = "display: block; margin: auto; max-width: 40px; text-align: center; font-size: 17px; font-weight: bold; color: #000; cursor: default; padding: 10px 0px; ", this.elems.icon.src = this.iconURL, this.elems.window.appendChild(this.elems.icon)), this.title && (this.elems.title = document.createElement("div"), this.elems.title.style.cssText = "display: block; text-align: center; font-size: 17px; font-weight: bold; color: #000; cursor: default; padding: 2px 20px; ", this.elems.title.innerHTML = D(this.title), this.elems.window.appendChild(this.elems.title)), this.text && (this.elems.text = document.createElement("div"), this.elems.text.style.cssText = "display: block; text-align: center; font-size: 15px; font-weight: normal; color: #000; cursor: default; padding: 2px 20px; ", this.elems.text.innerHTML = D(this.text), this.elems.window.appendChild(this.elems.text)), this.textFields.length > 0 && (this.elems.textFields = document.createElement("div"), this.elems.textFields.style.cssText = "display: block; ", this.elems.window.appendChild(this.elems.textFields), this.textFields.forEach(((M, N) => {
-					M.elem = document.createElement("input"), M.elem.style.cssText = "display: block; width: 90%; min-width: 250px; padding: 5px 0px; margin: 10px auto; background-color: #FFF; border: 1px solid #EEE; border-radius: 5px; text-align: center; font-size: 15px; color: #222; ", M.elem.value = M.value, M.elem.placeholder = M.placeholder, M.elem.type = M.type, this.elems.textFields.appendChild(M.elem), M.elem.addEventListener("keypress", (M => {
+				})), this.elems.window = document.createElement("div"), this.elems.window.classList.add('pixel-corners-4-6'), this.elems.window.style.cssText = `position: relative; background-color: var(--jsalert-background-color-off); box-shadow: ${boxShadow}; border-radius: 8px; padding: 10px; min-width: 50px; min-height: 10px; max-width: 80%; max-height: 90%; backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); `, this.elems.container.appendChild(this.elems.window), this.iconURL && (this.elems.icon = document.createElement("img"), this.elems.icon.style.cssText = "display: block; margin: auto; max-width: 40px; text-align: center; font-size: 17px; font-weight: bold; color: var(--jsalert-color); cursor: default; padding: 10px 0px; ", this.elems.icon.src = this.iconURL, this.elems.window.appendChild(this.elems.icon)), this.title && (this.elems.title = document.createElement("div"), this.elems.title.style.cssText = "display: block; text-align: center; font-size: 17px; font-weight: bold; color: var(--jsalert-color); cursor: default; padding: 2px 20px; ", this.elems.title.innerHTML = D(this.title), this.elems.window.appendChild(this.elems.title)), this.text && (this.elems.text = document.createElement("div"), this.elems.text.style.cssText = "display: block; text-align: center; font-size: 15px; font-weight: normal; color: var(--jsalert-color); cursor: default; padding: 2px 20px; ", this.elems.text.innerHTML = D(this.text), this.elems.window.appendChild(this.elems.text)), this.textFields.length > 0 && (this.elems.textFields = document.createElement("div"), this.elems.textFields.style.cssText = "display: block; ", this.elems.window.appendChild(this.elems.textFields), this.textFields.forEach(((M, N) => {
+					M.elem = document.createElement("input"), M.elem.style.cssText = "display: block; width: 90%; min-width: 250px; padding: 5px 0px; margin: 10px auto; background-color: var(--jsalert-background-color); border: 1px solid rgba(0,0,0,0.1); border-radius: 5px; text-align: center; font-size: 15px; color:var(--jsalert-color-off); ", M.elem.value = M.value, M.elem.placeholder = M.placeholder, M.elem.type = M.type, this.elems.textFields.appendChild(M.elem), M.elem.addEventListener("keypress", (M => {
 						13 == M.keyCode && (N + 1 >= this.textFields.length ? this.dismiss("enter-pressed") : this.textFields[N + 1].elem.focus())
 					}))
-				})), this.textFields[0].elem.focus()), this.buttons.length > 0 && (this.elems.buttons = document.createElement("div"), this.elems.buttons.style.cssText = "display: block; display: flex; justify-content: space-around; align-items: center; text-align: right; border-top: 1px solid #EEE; margin-top: 10px; " + buttonsParentStyle, this.elems.window.appendChild(this.elems.buttons), this.buttons.forEach((M => {
+				})), this.textFields[0].elem.focus()), this.buttons.length > 0 && (this.elems.buttons = document.createElement("div"), this.elems.buttons.style.cssText = "display: block; display: flex; justify-content: space-around; align-items: center; text-align: right; border-top: 1px solid rgba(0,0,0,0.1); margin-top: 10px; " + buttonsParentStyle, this.elems.window.appendChild(this.elems.buttons), this.buttons.forEach((M => {
 					var N = document.createElement("div");
-					N.style.cssText = "display: inline-block; font-size: 15px; font-weight: bold; color: var(--light-blue); cursor: pointer; text-align: center; " + buttonsStyle, N.innerText = M.text, this.elems.buttons.appendChild(N), this.addTouchHandler(N, (() => {
+					N.style.cssText = "display: inline-block; font-size: 15px; font-weight: bold; color: var(--jsalert-color); cursor: pointer; text-align: center; " + buttonsStyle, N.innerText = M.text, this.elems.buttons.appendChild(N), this.addTouchHandler(N, (() => {
 						M.callback && M.callback(M.value), "cancel" == M.type && (this.cancelled = !0), this.dismiss(M.value)
 					}))
 				})))
