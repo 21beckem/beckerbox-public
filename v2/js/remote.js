@@ -321,7 +321,7 @@ class RemoteGui {
 	}
 	alertPowerOff() {
 		JSAlert.alert('System powered off by Player 1. Come back soon! :)', 'Powered Off', JSAlert.Icons.Info);
-		this.setConnectingStatus(status.welcome);
+		location.href = 'https://box.beckersuite.com/thankyou.html';
 	}
 	showRemotePage() {
 		_('connectPage').style.display = 'none';
