@@ -1,4 +1,3 @@
-import { Peer } from 'https://esm.sh/peerjs@1.5.5?bundle-deps';
 import GeneralGUI from './GeneralGUI.js';
 const JSAlert = window.JSAlert;
 const REFRESH = '<button class="wiiUIbtn" onclick="window.refreshConnection();" style="font-size: inherit; border-radius: 17px;">Refresh</button>';
@@ -70,11 +69,9 @@ class Remote {
 				setTimeout(()=>{ c.close(); }, 500);
 			});
 		});
-		this.peer.on('disconnected', () => {
-			this.GUI.setConnectingStatus(status.disconnected);
-		});
 		this.peer.on('error', (err) => {
-			this.GUI.setConnectingStatus(status.error(err));
+			if (!connOpen)
+				this.GUI.setConnectingStatus(status.error(err));
 		});
 	}
 	destroy() {
@@ -105,6 +102,9 @@ class Remote {
 			this.GUI.showRemotePage();
 			this.#startSendingPackets();
 
+			// close connection with peerjs server after a sec
+			setTimeout(() => peer._socket.close(), 500);
+
 			// set the id to this in the URL without refresh
 			history.replaceState(null, null, '?id=' + code);
 		});
@@ -124,6 +124,8 @@ class Remote {
 			} else if (data.type === 'hb') {
 				// heartbeat response
 				this.conn.send({type: 'hbr', id: data.id});
+			} else if (typeof data.newHostCode === 'string') {
+				GeneralGUI.updateHostCode(data.newHostCode, '#joinCode .qr-code');
 			} else if (data.getPreferredSlot === true) {
 				// respond with preferred slot if any
 				this.conn.send({ result: this.GUI.getPreferredSlotFromSession() });
@@ -138,12 +140,12 @@ class Remote {
 				this.GUI.setConnectingStatus(status.disconnected);
 		});
 		this.conn.on('close', () => {
-			this.connOpen = false;
-			console.log('Connection closed');
-			if (window.allSlotsTaken===true)
-				this.GUI.setConnectingStatus(status.allSlotsTaken);
-			else
-				this.GUI.setConnectingStatus(status.disconnected);
+			// this.connOpen = false;
+			// console.log('Connection closed');
+			// if (window.allSlotsTaken===true)
+			// 	this.GUI.setConnectingStatus(status.allSlotsTaken);
+			// else
+			// 	this.GUI.setConnectingStatus(status.disconnected);
 		});
 		this.conn.on('error', (err) => {
 			this.connOpen = false;

@@ -100,6 +100,9 @@ export default class Player {
         this.#alertedAboutPowerOff = true;
         this.conn.send({poweredOff: true});
     }
+    alertNewCode(code) {
+        this.conn.send({newHostCode: code});
+    }
 
 
     

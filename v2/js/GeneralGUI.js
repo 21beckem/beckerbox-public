@@ -56,6 +56,13 @@ export default class GeneralGUI {
 		_('RemotePage').style.overflowY = 'unset';
 		setTimeout(() => _('RemotePage').style.overflowY = 'hidden', 10);
 	}
+	static updateHostCode(code, selector) {
+		const url = new URL(window.location.href);
+		url.searchParams.set('id', code);
+		window.history.replaceState({path: url.href}, '', url.href);
+
+		this.setQRCode(selector);
+	}
 	static setQRCode(selector) {
 		document.querySelector(selector).innerHTML = '';
 		new QRCode(document.querySelector(selector), {

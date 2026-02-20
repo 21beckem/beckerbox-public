@@ -30,7 +30,7 @@ const PlayerManager = new (class PlayerManager {
     }
     #managePeerServer() {
         // reconnect function
-        let reconnectCount = 10;
+        let reconnectCount = 5;
         const reconnect = (reconnectIn=3000) => {
             console.warn('disconnected from and/or can\'t connect to peer server.');
             // if haven't tried reconnecting enough times, do that
@@ -63,9 +63,12 @@ const PlayerManager = new (class PlayerManager {
         this.peer.on('error', () => reconnect());
         this.peer.on('open', (id) => {
             this.#setQrCode(id);
+            this.alertNewCode(id);
 
             // for now on...
+            let onMessage = this.peer._socket._socket.onmessage
             this.peer._socket._socket.onmessage = (e) => {
+                onMessage(e);
                 currentDisconnectTimeout = serverDisconnectTimeout;
             }
         });
@@ -142,6 +145,9 @@ const PlayerManager = new (class PlayerManager {
     }
     alertPowerOff() {
         this.players.forEach(p => p?.alertPowerOff());
+    }
+    alertNewCode(code) {
+        this.players.forEach(p => p?.alertNewCode(code));
     }
 
     
