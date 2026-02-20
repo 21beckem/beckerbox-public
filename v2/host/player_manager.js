@@ -9,13 +9,15 @@ const PlayerManager = new (class PlayerManager {
         this.pointerClicks = [false, false, false, false];
     }
     #setQrCode(id, selector='#qrcode') {
-        
+        document.querySelector(selector).innerHTML = '<div class="loader"></div>';
+        if (id === false) return;
+
         new QRCode(document.querySelector(selector), {
             text: new URL('../?id='+id, location.href).href,
             width: 200,
             height: 200,
-            colorDark : "#000000",
-            colorLight : "#ffffff",
+            colorDark : '#000000',
+            colorLight : '#ffffff',
             correctLevel : QRCode.CorrectLevel.H
         });
         console.log('Set QR code with ID:', id);
@@ -24,22 +26,64 @@ const PlayerManager = new (class PlayerManager {
         // tell the backend that we are ready
         window.electron?.init();
 
-        if (window.location.hostname === 'localhost')
-            this.peer = new Peer(null, {
-                host: 'peerjs.beckersuite.com',
-                secure: true
-            });
-        else
-            this.peer = this.peer = new Peer(null, {
-                host: 'peerjs.beckersuite.com',
-                secure: true
-            });
+        this.#managePeerServer();
+    }
+    #managePeerServer() {
+        // reconnect function
+        let reconnectCount = 10;
+        const reconnect = (reconnectIn=3000) => {
+            console.warn('disconnected from and/or can\'t connect to peer server.');
+            // if haven't tried reconnecting enough times, do that
+            if (reconnectCount > 0) {
+                console.log('attempting "reconnect" ' + reconnectCount);
+                
+                reconnectCount--;
+                this.peer.reconnect();
+                return;
+            }
 
+            // can't re-connect. Just restart the connection
+            clearInterval(subIntervalFunction);
+            this.peer?.destroy();
+
+            setTimeout(() => this.#managePeerServer(), reconnectIn);
+        }
+        console.log('connecting to peer server...');
+        this.#setQrCode(false);
+        
+        
+        const serverDisconnectTimeout = 10000;
+        let currentDisconnectTimeout = serverDisconnectTimeout;
+
+        // setup peer
+        this.peer = new Peer(null, {
+            host: 'peerjs.beckersuite.com',
+            secure: true
+        });
+        this.peer.on('error', () => reconnect());
         this.peer.on('open', (id) => {
             this.#setQrCode(id);
+
+            // for now on...
+            this.peer._socket._socket.onmessage = (e) => {
+                currentDisconnectTimeout = serverDisconnectTimeout;
+            }
         });
-        this.peer.on('disconnect', () => { console.warn('disconnected'); this.peer.reconnect(); });
+        this.peer.on('disconnect', () => reconnect());
         this.peer.on('connection', (conn) => this.#addNewPhone(conn) );
+
+        let subIntervalFunction;
+        let subIntervalTimeout = 1000;
+
+        subIntervalFunction = setInterval(() => {
+
+            currentDisconnectTimeout -= subIntervalTimeout;
+            if (currentDisconnectTimeout > 0) return;
+
+            // the connection has timed out
+            reconnect(1);
+
+        }, subIntervalTimeout)
     }
     async #addNewPhone(conn) {
         let slot = null;
