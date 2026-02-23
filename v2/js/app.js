@@ -1,13 +1,15 @@
 import { Remote } from './remote.js';
+import { startBeckerboxTour } from './tutorial.js';
 
-let remote;
+window.remote = null;
 window.refreshConnection = (code=null, force=true) => {
     if (force) return window.location.reload();
-    remote?.destroy();
-    remote = new Remote(code);
+    window.remote?.destroy();
+    window.remote = new Remote(code);
 };
 window.refreshConnection(null, false);
 window.disconnectRemote = () => {
-    remote?.destroy();
-    remote = null;
+    window.remote?.destroy();
+    window.remote = null;
 };
+startBeckerboxTour();

@@ -321,7 +321,7 @@
 					}))
 				})), this.textFields[0].elem.focus()), this.buttons.length > 0 && (this.elems.buttons = document.createElement("div"), this.elems.buttons.style.cssText = "display: block; display: flex; justify-content: space-around; align-items: center; text-align: right; border-top: 1px solid rgba(0,0,0,0.1); margin-top: 10px; " + buttonsParentStyle, this.elems.window.appendChild(this.elems.buttons), this.buttons.forEach((M => {
 					var N = document.createElement("div");
-					N.style.cssText = "display: inline-block; font-size: 15px; font-weight: bold; color: var(--jsalert-color); cursor: pointer; text-align: center; " + buttonsStyle, N.innerText = M.text, this.elems.buttons.appendChild(N), this.addTouchHandler(N, (() => {
+					N.style.cssText = "display: inline-block; font-size: 15px; color: var(--jsalert-color); cursor: pointer; text-align: center; " + buttonsStyle, N.innerHTML = M.text, this.elems.buttons.appendChild(N), this.addTouchHandler(N, (() => {
 						M.callback && M.callback(M.value), "cancel" == M.type && (this.cancelled = !0), this.dismiss(M.value)
 					}))
 				})))

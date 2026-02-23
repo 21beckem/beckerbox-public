@@ -190,10 +190,12 @@ html:fullscreen #openFullScreenPrompt {
 	z-index: 1001;
 	display: flex;
 	flex-direction: column;
-	padding: 2rem 0;
+	padding: 1rem 0 2rem;
 	min-width: 65%;
 	pointer-events: all;
-	overflow: hidden;
+	overflow-x: hidden;
+	overflow-y: auto;
+	height: calc(100vh - 3rem);
 	transform: translateX(0);
 	transition: transform 0.2s ease;
 }
@@ -230,10 +232,7 @@ html:fullscreen #openFullScreenPrompt {
 }
 
 #side-menu #joinCode {
-	position: absolute;
-    left: 40px;
-    right: 40px;
-    bottom: 40px;
+	margin-top: auto;
     text-align: center;
     font-size: 1.2rem;
     display: flex;

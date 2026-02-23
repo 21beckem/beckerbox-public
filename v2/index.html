@@ -23,6 +23,9 @@
     <!-- <script src="js/qr/qr-scanner.umd.min.js"></script> -->
 	<link rel="stylesheet" href="css/selectSwiper.css">
     <script src="js/lib/peerjs.js"></script>
+	<!-- Drvier.js (intro tutorial) -->
+	<script src="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.js.iife.js"></script>
+	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/driver.js@latest/dist/driver.css"/>
 </head>
 
 <body>
@@ -47,14 +50,15 @@
 		<div id="side-menu" class="closed">
 			<div class="screen-dimmer" onclick="this.parentElement.classList.add('closed')"></div>
 			<div class="menu-content">
-				<div class="menu-btn player-one-only" id="PowerOffBtn" style="transform: translateY(-1rem);"><i class="fa-solid fa-power-off" style="color: red;"></i> Power Off</div>
+				<div class="menu-btn player-one-only" id="PowerOffBtn" style="transform: translateY(-0.5rem);"><i class="fa-solid fa-power-off" style="color: red;"></i> Power Off</div>
 				<div class="title">BeckerBox<br>Remote</div>
 				<hr>
-				<div class="menu-btn" onclick="window.refreshConnection(null, true)"><i class="fa-solid fa-link"></i> Reconnect</div>
-				<div class="menu-btn" onclick="window.disconnectRemote()"><i class="fa-solid fa-link-slash"></i> Disconnect</div>
+				<div class="menu-btn" id="reconnectBtn" onclick="window.refreshConnection(null, true)"><i class="fa-solid fa-link"></i> Reconnect</div>
+				<div class="menu-btn" id="disconnectBtn" onclick="window.disconnectRemote()"><i class="fa-solid fa-link-slash"></i> Disconnect</div>
 				<div class="menu-btn player-one-only" id="changeDiscBtn"><i class="fa-solid fa-eject"></i> Change Disc</div>
 				<div class="menu-btn" id="changeLayoutBtn"></div>
 				<div class="menu-btn" id="handDominanceBtn"></div>
+				<div class="menu-btn" id="moreOptionsBtn"><i class="fa-solid fa-gears"></i> More Options</div>
 				<div id="joinCode">
 					<div class="text">Join Code</div>
 					<div class="qr-code"></div>

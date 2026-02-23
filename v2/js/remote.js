@@ -1,4 +1,5 @@
 import GeneralGUI from './GeneralGUI.js';
+import { startBeckerboxTour } from './tutorial.js';
 const JSAlert = window.JSAlert;
 const REFRESH = '<button class="wiiUIbtn" onclick="window.refreshConnection();" style="font-size: inherit; border-radius: 17px;">Refresh</button>';
 const status = {
@@ -91,13 +92,13 @@ class Remote {
 		}
 		code = code || this.searchParams.get('id');
 
+		GeneralGUI.setQRCode('#joinCode .qr-code');
 		if (code === 'dev-env') return this.GUI.showRemotePage();
 
 		this.conn = this.peer.connect(code);
 		this.conn.on('open', () => {
 			this.connOpen = true;
 			console.log('Peer opened');
-			GeneralGUI.setQRCode('#joinCode .qr-code');
 			this.GUI.closeMenu();
 			this.GUI.showRemotePage();
 			this.#startSendingPackets();
@@ -227,10 +228,11 @@ class RemoteGui {
 	constructor(remote) {
 		this.Remote = remote;
 		_('launchFullscreenBtn').addEventListener('click', GeneralGUI.attemptFullscreen);
-		_('menuBarsBtn').addEventListener('click', () => this.#openMenu());
+		_('menuBarsBtn').addEventListener('click', () => this.openMenu());
 		_('changeDiscBtn').addEventListener('click', () => this.changeDisc());
-		_('changeLayoutBtn').addEventListener('click', () => this.#changeLayout());
+		_('changeLayoutBtn').addEventListener('click', () => this.changeLayout());
 		_('handDominanceBtn').addEventListener('click', () => this.#toggleHandDominance());
+		_('moreOptionsBtn').addEventListener('click', () => this.#showMoreOptions());
 		_('PowerOffBtn').addEventListener('click', () => this.#powerOff());
 		this.#setBposition();
 		this.#toggleHandDominance(this.handDominance);
@@ -394,8 +396,17 @@ class RemoteGui {
 			JSAlert.alert('BeckerBox returned an error while powering off. Please try again.', 'Request failed', JSAlert.Icons.Failed);
 		}
 	}
-	#changeLayout() {
-		this.remoteLayout++;
+	changeLayout(setTo=null) {
+		if (setTo===null)
+			this.remoteLayout++;
+		else {
+			let layouts = this.remoteLayouts.map(x => x.toLowerCase());
+			setTo = setTo.toLowerCase();
+			if (layouts.includes(setTo))
+				this.remoteLayout = (layouts.indexOf(setTo)+1);
+			else
+				throw new Error('remote layout not found');
+		}
 		if (this.remoteLayout > this.remoteLayouts.length) this.remoteLayout = 1;
 		this.showRemotePage();
 		sessionStorage.setItem('last-remote-layout', this.remoteLayout);
@@ -411,8 +422,15 @@ class RemoteGui {
 		this.#updateSideMenuText();
 		sessionStorage.setItem('last-hand-dominance', this.handDominance);
 	}
+	#showMoreOptions() {
+		let n = new JSAlert('', 'More Options');
+		n.addButton('Show Intro Tutorial').then(() => {
+			startBeckerboxTour(true);
+		});
+		n.show();
+	}
 	
-	#openMenu() { _('side-menu').classList.remove('closed'); }
+	openMenu() { _('side-menu').classList.remove('closed'); }
 	closeMenu() { _('side-menu').classList.add('closed'); }
 }
 
