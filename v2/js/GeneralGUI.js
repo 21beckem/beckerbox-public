@@ -1,12 +1,14 @@
 let noSleep = new window.NoSleep();
 const _ = (x) => document.getElementById(x);
 
+let launchedFullScreen = false;
 const onMobile = window.matchMedia("(any-pointer: coarse)").matches;
 const searchParams = new URLSearchParams(window.location.search);
 if (!onMobile || searchParams.get('id') === 'dev-env') {
 	// if not on mobile, don't bother with fullscreen prompt
 	document.documentElement.classList.add('mobile');
 	_('openFullScreenPrompt').style.display = 'none';
+	launchedFullScreen = true;
 }
 export default class GeneralGUI {
     static async attemptFullscreen() {
@@ -55,6 +57,7 @@ export default class GeneralGUI {
 		document.body.scrollTop = 0;
 		_('RemotePage').style.overflowY = 'unset';
 		setTimeout(() => _('RemotePage').style.overflowY = 'hidden', 10);
+		launchedFullScreen = true;
 	}
 	static updateHostCode(code, selector) {
 		const url = new URL(window.location.href);
@@ -73,6 +76,11 @@ export default class GeneralGUI {
             colorLight : "#ffffff",
             correctLevel : QRCode.CorrectLevel.H
         });
+	}
+	static async waitForFullscreenLaunch() {
+		while (!launchedFullScreen) {
+			await new Promise(resolve => setTimeout(resolve, 100));
+		}
 	}
 }
 window.GeneralGUI = GeneralGUI;

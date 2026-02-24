@@ -188,9 +188,11 @@ const steps = [
 // Give the steps to driver
 driver.setSteps(steps);
 
-export function startBeckerboxTour(force=false) {
+export async function startBeckerboxTour(force=false) {
 	// If already seen, don't show again
 	if (!force && localStorage.getItem(TOUR_STORAGE_KEY)) return;
+
+	await GeneralGUI.waitForFullscreenLaunch();
 
 	window.remote.GUI.changeLayout('classic');
 	window.remote.GUI.closeMenu();
