@@ -1,3 +1,5 @@
+import GoogleAnalytics from './google-an.js';
+GoogleAnalytics.init();
 import { Remote } from './remote.js';
 import { startBeckerboxTour } from './tutorial.js';
 
