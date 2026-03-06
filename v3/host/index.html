@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BeckerBox Menu</title>
+    <style>
+/* @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600&display=swap'); */
+body {
+    margin: 0;
+    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+}
+main {
+    display: flex;
+    height: 100vh;
+    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+    /* background-color: rgba(0, 0, 0, 0.2); */
+}
+main[helpers] {
+    .phone-column { background-color: red; }
+    .phone-column .phone-container { background-color: orange; }
+    .center-column { background-color: blue; }
+    .center-column .title-container { background-color: cyan; }
+    .center-column .qrcode-container { background-color: green; }
+    .center-column .main-buttons-container { background-color: purple; }
+}
+.phone-column {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+
+    .phone-container {
+        width: 100%;
+        height: 40%;
+    }
+}
+.center-column {
+    flex: 2;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    align-items: center;
+
+    .title-container {
+        width: 100%;
+        height: 15%;
+
+        img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+    }
+
+    .qrcode-container {
+        width: 100%;
+        height: 30%;
+        display: flex;
+        justify-content: center;
+
+        .qrcode {
+            width: 100%;
+            height: 100%;
+            max-height: calc(100% - 34px);
+            max-width:  calc(100% - 34px);
+            aspect-ratio: 1;
+            border: 7px solid rgb(8 190 2);
+            border-radius: 10px;
+            padding: 10px;
+            width: fit-content;
+            color: #323232;
+            background-color: #e0e5ea;
+            box-shadow: 2px 2px 18px 13px white inset;
+        }
+        .qrcode canvas, .qrcode img {
+            position: relative;
+            z-index: 5;
+        }
+    }
+
+    .main-buttons-container {
+        width: 100%;
+        height: 20%;
+        display: flex;
+        justify-content: space-evenly;
+        align-items: center;
+        gap: 2rem;
+    }
+}
+
+
+.loader {
+    position: absolute;
+    width: 5rem;
+    height: 5rem;
+	top: 50%;
+	left: 50%;
+    border: 5px solid rgba(255, 255, 255, 0.5);
+    border-bottom-color: transparent;
+    border-radius: 50%;
+    display: inline-block;
+    box-sizing: border-box;
+    --offset: translate(-50%, -80%);
+    animation: loader-rotation-centered 1s linear infinite;
+    z-index: 0;
+}
+@keyframes loader-rotation-centered {
+    0% {
+        transform: var(--offset) rotate(0deg);
+    }
+    100% {
+        transform: var(--offset) rotate(360deg);
+    }
+}
+
+
+.round-btn {
+    font-family: 'Source Sans 3', 'Segoe UI', sans-serif;
+    font-size: 3rem;
+    letter-spacing: 1px;
+    color: #323232;
+    padding: 0.5rem 2rem;
+    min-width: 170px;
+    border-radius: 30px;
+    border: solid rgb(8 190 2);
+    background-color: #e0eae3;
+    box-shadow: 2px 2px 12px 7px white inset;
+    filter: drop-shadow(0px 0px 1px rgb(8 190 2));
+}
+.round-btn, button {
+    transition: transform 0.15s;
+}
+.round-btn:not(.no-cursor), button:not(.no-cursor) {
+    cursor: pointer;
+}
+.round-btn.hover, .round-btn:not(.no-cursor):hover, button.hover, button:not(.no-cursor):hover {
+    transform: scale(1.1);
+}
+.round-btn.small {
+    font-size: 18px;
+    padding: 0.5rem 0.8rem;
+}
+.round-btn:disabled {
+    opacity: 0.5;
+    pointer-events: none;
+    filter: grayscale();
+    cursor: not-allowed;
+}
+
+
+
+
+.phone-container {
+    display: flex;
+    flex-direction: row;
+    gap: 3rem;
+
+
+    remote-container {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        pointer-events: none;
+        * {
+            pointer-events: none;
+        }
+        .phone-icon {
+            position: relative;
+            text-align: center;
+        }
+        .phone-icon .fa-mobile {
+            font-size: 11rem;
+            color: #d3d3d3;
+        }
+        .round-btn {
+            filter: grayscale() opacity(0.8);
+        }
+        .signal-lost {
+            display: none;
+            position: absolute;
+            bottom: 2.5rem;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 1.1rem;
+            color: white;
+        }
+        .fa-circle-check {
+            display: none;
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: #c7ffc4;
+        }
+        .connecting-loader {
+            position: absolute;
+            top: 45%;
+            left: 50%;
+            color: #fff;
+            font-size: 10px;
+            width: 1em;
+            height: 1em;
+            border-radius: 50%;
+            text-indent: -9999em;
+            animation: mulShdSpin 1.3s infinite linear;
+            transform: translateZ(0) translate(-50%, -50%) scale(0.7);
+        }
+    }
+
+    remote-container.connected {
+        pointer-events: all;
+        * {
+            pointer-events: all;
+        }
+        .phone-icon .fa-mobile {
+            color: rgb(8 190 2);
+        }
+        .round-btn {
+            filter: none;
+        }
+        .signal-lost {
+            display: none;
+        }
+        .fa-circle-check {
+            display: block;
+        }
+        .connecting-loader {
+            display: none;
+        }
+    }
+    
+    remote-container.signal-lost {
+        pointer-events: all;
+        * {
+            pointer-events: all;
+        }
+        .phone-icon .fa-mobile {
+            color: #e9ac44;
+        }
+        .signal-lost {
+            display: block;
+        }
+        .round-btn {
+            filter: none;
+        }
+        .fa-circle-check {
+            display: none;
+        }
+        .connecting-loader {
+            display: block;
+        }
+    }
+}
+
+@keyframes mulShdSpin {
+  0%,
+  100% {
+    box-shadow: 0 -3em 0 0.2em, 
+    2em -2em 0 0em, 3em 0 0 -1em, 
+    2em 2em 0 -1em, 0 3em 0 -1em, 
+    -2em 2em 0 -1em, -3em 0 0 -1em, 
+    -2em -2em 0 0;
+  }
+  12.5% {
+    box-shadow: 0 -3em 0 0, 2em -2em 0 0.2em, 
+    3em 0 0 0, 2em 2em 0 -1em, 0 3em 0 -1em, 
+    -2em 2em 0 -1em, -3em 0 0 -1em, 
+    -2em -2em 0 -1em;
+  }
+  25% {
+    box-shadow: 0 -3em 0 -0.5em, 
+    2em -2em 0 0, 3em 0 0 0.2em, 
+    2em 2em 0 0, 0 3em 0 -1em, 
+    -2em 2em 0 -1em, -3em 0 0 -1em, 
+    -2em -2em 0 -1em;
+  }
+  37.5% {
+    box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
+     3em 0em 0 0, 2em 2em 0 0.2em, 0 3em 0 0em, 
+     -2em 2em 0 -1em, -3em 0em 0 -1em, -2em -2em 0 -1em;
+  }
+  50% {
+    box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
+     3em 0 0 -1em, 2em 2em 0 0em, 0 3em 0 0.2em, 
+     -2em 2em 0 0, -3em 0em 0 -1em, -2em -2em 0 -1em;
+  }
+  62.5% {
+    box-shadow: 0 -3em 0 -1em, 2em -2em 0 -1em,
+     3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 0, 
+     -2em 2em 0 0.2em, -3em 0 0 0, -2em -2em 0 -1em;
+  }
+  75% {
+    box-shadow: 0em -3em 0 -1em, 2em -2em 0 -1em, 
+    3em 0em 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, 
+    -2em 2em 0 0, -3em 0em 0 0.2em, -2em -2em 0 0;
+  }
+  87.5% {
+    box-shadow: 0em -3em 0 0, 2em -2em 0 -1em, 
+    3em 0 0 -1em, 2em 2em 0 -1em, 0 3em 0 -1em, 
+    -2em 2em 0 0, -3em 0em 0 0, -2em -2em 0 0.2em;
+  }
+}
+    </style>
+	<link rel="stylesheet" href="../../fontawesome/all.min.css">
+</head>
+<body>
+    <main helpers>
+        <section class="phone-column">
+            <div class="phone-container">
+                <remote-container class="p1">
+                    <div class="phone-icon">
+                        <i class="fa-solid fa-mobile"></i>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div class="connecting-loader"></div>
+                        <div class="signal-lost">reconnecting...</div>
+                    </div>
+                    <button class="round-btn small disconnect">scan now...</button>
+                </remote-container>
+            </div>
+            <div class="phone-container">
+                <remote-container class="p2">
+                    <div class="phone-icon">
+                        <i class="fa-solid fa-mobile"></i>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div class="connecting-loader"></div>
+                        <div class="signal-lost">reconnecting...</div>
+                    </div>
+                    <button class="round-btn small disconnect">scan now...</button>
+                </remote-container>
+            </div>
+        </section>
+
+        <section class="center-column">
+            <div class="title-container">
+                <img src="../img/logo-with-words.png" alt="BeckerBox Logo">
+            </div>
+            <div class="qrcode-container">
+                <div id="qrcode" class="qrcode">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://r.box.beckersuite.com/v3/?id=dev-env" style="width: 100%; height: 100%; object-fit: contain;" alt="QR Code">
+                    <div class="loader"></div>
+                </div>
+            </div>
+            <div class="main-buttons-container">
+                <button class="round-btn" style="flex: 2">Main Menu</button>
+                <button class="round-btn" style="flex: 1">Close</button>
+                <button class="round-btn" style="flex: 2">Games Folder</button>
+            </div>
+        </section>
+
+        <section class="phone-column">
+            <div class="phone-container">
+                <remote-container class="p3">
+                    <div class="phone-icon">
+                        <i class="fa-solid fa-mobile"></i>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div class="connecting-loader"></div>
+                        <div class="signal-lost">reconnecting...</div>
+                    </div>
+                    <button class="round-btn small disconnect">scan now...</button>
+                </remote-container>
+            </div>
+            <div class="phone-container">
+                <remote-container class="p4">
+                    <div class="phone-icon">
+                        <i class="fa-solid fa-mobile"></i>
+                        <i class="fa-solid fa-circle-check"></i>
+                        <div class="connecting-loader"></div>
+                        <div class="signal-lost">reconnecting...</div>
+                    </div>
+                    <button class="round-btn small disconnect">scan now...</button>
+                </remote-container>
+            </div>
+        </section>
+    </main>
+</body>
+</html>
