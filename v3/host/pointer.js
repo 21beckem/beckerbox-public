@@ -66,7 +66,6 @@ export default class Pointer {
         let oldEls = [...this.hoveredElements];
         this.hoveredElements = [];
         document.elementsFromPoint(this.pos.x, this.pos.y).forEach(el => {
-            if (!el.classList.contains('pointer-clickable')) return;
             if (el.tagName != 'BUTTON') return;
             if (el.classList.contains('pointer')) return;
             if (oldEls.includes(el)) {

@@ -1,10 +1,5 @@
 if (window.electron === undefined) {
     let a = (title, message) => JSAlert.alert(message, title);
-    window.addEventListener('DOMContentLoaded', () => {
-        document.querySelector('button#close').onclick = () => {
-            a('Close', 'After purchasing BeckerBox, this would close the application.');
-        };
-    });
     window.electron = {
         FAKE: true, // used to detect if we're running in fake electron mode
         init: () => {
@@ -21,9 +16,6 @@ if (window.electron === undefined) {
         },
         sendPacket: (slot, data) => {
             // do nothing
-        },
-        startWii: () => {
-            a('Start Wii', 'After purchasing BeckerBox, this would launch the Wii Menu\u2122. <p style="font-family: sans-serif; font-size:0.8em;">"Wii" is a registered Nintendo trademark. BeckerBox is not affiliated with or endorsed by Nintendo.</p>');
         },
         getDiscList: () => {
             return Promise.resolve([

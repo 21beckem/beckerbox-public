@@ -12,10 +12,16 @@ const PlayerManager = new (class PlayerManager {
         document.querySelector(selector).innerHTML = '<div class="loader"></div>';
         if (id === false) return;
 
+        let el = document.querySelector(selector);
+        if (!el)
+            return console.error('Could not find QR code element with selector', selector);
+
+        const {width, height} = el.getBoundingClientRect();
+
         new QRCode(document.querySelector(selector), {
             text: new URL('../?id='+id, location.href).href,
-            width: 200,
-            height: 200,
+            width: width,
+            height: height,
             colorDark : '#000000',
             colorLight : '#ffffff',
             correctLevel : QRCode.CorrectLevel.H
