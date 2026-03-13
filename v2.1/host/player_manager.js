@@ -52,7 +52,7 @@ const PlayerManager = new (class PlayerManager {
         this.#setQrCode(false);
         
         
-        const serverDisconnectTimeout = 10000;
+        const serverDisconnectTimeout = 15 * 1000;
         let currentDisconnectTimeout = serverDisconnectTimeout;
 
         // setup peer

@@ -104,7 +104,7 @@ class Remote {
 			this.#startSendingPackets();
 
 			// close connection with peerjs server after a sec
-			setTimeout(() => peer._socket.close(), 500);
+			setTimeout(() => this.peer._socket.close(), 500);
 
 			// set the id to this in the URL without refresh
 			history.replaceState(null, null, '?id=' + code);
@@ -426,6 +426,11 @@ class RemoteGui {
 		let n = new JSAlert('', 'More Options');
 		n.addButton('Show Intro Tutorial').then(() => {
 			startBeckerboxTour(true);
+			this.closeMenu();
+		});
+		n.addButton('Show Developer Console').then(() => {
+			mobileConsole.show();
+			this.closeMenu();
 		});
 		n.show();
 	}
