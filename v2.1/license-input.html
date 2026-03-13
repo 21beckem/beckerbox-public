@@ -282,11 +282,14 @@ button.padding {
                 <div class="content" id="input-key-container">
                     <div class="content half" style="flex: 2;">
                         <input type="text" id="licenseKey" style="padding: 1rem; text-align: center; margin: 0 auto; width: 50%;" placeholder="Enter your license key here">
+                        <p style="text-align: center; margin-bottom: 1rem; margin-top: 0.5rem; opacity: 0.7;">
+                            Don't have a license key? <a href="https://box.beckersuite.com/download.html">Purchase one here.</a>
+                        </p>
                         <br>
                         <button class="primary" style="padding: 1rem 2.5rem; margin: 0 auto;" onclick="submitLicense()">Submit</button>
                     </div>
                     <line><span>OR</span></line>
-                    <div class="content half" style="flex: 1">
+                    <div class="content half" style="flex: 0">
                         <center>
                             <button class="green" style="padding: 1rem 2.5rem; margin: 0 auto;" onclick="watchAd()">
                                 Watch an Ad to Continue <i class="fa-solid fa-circle-play"></i>
@@ -336,6 +339,13 @@ if (validity === null)
         message: 'An unknown error occurred while launching or verifying your license. Please contact support.',
         devNotes: 'the "validity" query parameter was not provided or could not be parsed'
     };
+
+Array.from(document.querySelectorAll('a[href]')).filter(a => a.href.startsWith('http')).forEach(a => {
+    a.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.electron.utils.openExternal(a.href);
+    });
+});
 
 
 const keyInputContainer = document.getElementById('input-key-container');
