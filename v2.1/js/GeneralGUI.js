@@ -13,7 +13,7 @@ if (!onMobile || searchParams.get('id') === 'dev-env') {
 export default class GeneralGUI {
     static async attemptFullscreen() {
 		// Request motion events permission for iOS 13+ devices
-		if (DeviceMotionEvent && typeof DeviceMotionEvent.requestPermission === 'function') {
+		if (window.DeviceMotionEvent && typeof window.DeviceMotionEvent.requestPermission === 'function') {
 			DeviceMotionEvent.requestPermission();
 		}
 		// prevent screen from sleeping

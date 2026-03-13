@@ -54,6 +54,7 @@ class Remote {
 	searchParams = new URLSearchParams(window.location.search);
 	constructor(code) {
 		this.GUI = new RemoteGui(this);
+		if ((code===null && this.searchParams.get('id') === 'dev-env') || code === 'dev-env') return this.GUI.showRemotePage();
 		this.peer = new Peer(null, {
 			host: 'peerjs.beckersuite.com',
 			secure: true
@@ -71,8 +72,7 @@ class Remote {
 			});
 		});
 		this.peer.on('error', (err) => {
-			if (!connOpen)
-				this.GUI.setConnectingStatus(status.error(err));
+			// this.GUI.setConnectingStatus(status.error(err));
 		});
 	}
 	destroy() {

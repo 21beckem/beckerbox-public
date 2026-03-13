@@ -84,6 +84,9 @@ i {
 	flex-direction: column;
 	color: var(--text-color);
 }
+#RemotePage remote {
+	touch-action: none;
+}
 #RemotePage remote .bTri.one {
 	display: var(--bBtn-show-left);
 }

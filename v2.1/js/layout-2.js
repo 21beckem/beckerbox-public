@@ -42,16 +42,43 @@
 				this.downBtn.dispatchEvent(new Event('touchend'));
 		}
 	};
-	const angleOptions = {
-		right: [0,0,1,0],
-		rightUp: [1,0,1,0],
-		up: [1,0,0,0],
-		upLeft: [1,1,0,0],
-		left: [0,1,0,0],
-		leftDown: [0,1,0,1],
-		down: [0,0,0,1],
-		downRight: [0,0,1,1],
-	};
+	const patternGetter = (() => {
+		const degreesFor1ButtonOnly = 65; // must be 0 < x < 90
+
+		// shouldn't have to edit anything below this line when changing the above variable
+		const angleOptions = {
+			right: [0,0,1,0],
+			rightUp: [1,0,1,0],
+			up: [1,0,0,0],
+			upLeft: [1,1,0,0],
+			left: [0,1,0,0],
+			leftDown: [0,1,0,1],
+			down: [0,0,0,1],
+			downRight: [0,0,1,1],
+		};
+		let a = -(degreesFor1ButtonOnly/2);
+		let arr = Object.keys(angleOptions).map((key, i) => {
+			a += (i%2 === 0 ? degreesFor1ButtonOnly : (90 - degreesFor1ButtonOnly))
+			return {
+				angle: a,
+				pattern: angleOptions[key]
+			}
+		});
+		// add the first option to the end so that the loop can be simpler
+		arr.push({ angle: 360, pattern: angleOptions.right });
+
+		return function(data) {
+			if (data.distance < 30 || !data.angle || !data.angle.degree) return [0,0,0,0];
+			
+			let angle = data.angle.degree;
+			if (angle < 0) angle += 360;
+			for (let i = 0; i < arr.length; i++) {
+				if (angle < arr[i].angle) {
+					return arr[i].pattern;
+				}
+			}
+		};
+	})();
 	function makeJoystick() {
 		removeJoystick();
 		joy = nipplejs.create({
@@ -62,15 +89,7 @@
 		});
 
 		joy.on('move', (evt, data) => {
-			let pat = [0,0,0,0];
-			if (data.distance > 30 && data.angle && data.angle.degree) {
-				const d = data.angle.degree+22.5;
-				const angle = Math.floor(d / 45) % 8;
-				const optionKey = Object.keys(angleOptions)[angle];
-				if (optionKey)
-					pat = angleOptions[optionKey];
-			}
-			dPad.applyPattern(pat);
+			dPad.applyPattern(patternGetter(data));
 		});
 		joy.on('end', (evt, data) => {
 			dPad.applyPattern([0,0,0,0]);
