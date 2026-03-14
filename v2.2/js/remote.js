@@ -223,9 +223,11 @@ class RemoteGui {
 	remoteLayout = sessionStorage.getItem('last-remote-layout') || 1;
 	handDominance = sessionStorage.getItem('last-hand-dominance') || 'right';
 
+	
 	b_states = [0, 0];
 	Remote = null;
 	constructor(remote) {
+		this.changeDisc();
 		this.Remote = remote;
 		_('launchFullscreenBtn').addEventListener('click', GeneralGUI.attemptFullscreen);
 		_('menuBarsBtn').addEventListener('click', () => this.openMenu());
@@ -351,6 +353,26 @@ class RemoteGui {
 	}
 	async changeDisc() {
 		this.closeMenu();
+		
+		const games = [
+			{
+				name: 'Wii Sports',
+				gameId: 'RSPE01',
+			},
+			{
+				name: 'Wii Sports Resort',
+				gameId: 'RZTE01',
+			}
+		];
+		const menu = GameMenu.create({
+			games,
+			mode: 'remote',
+		});
+		menu.open();
+
+		return;
+
+		
 		let discs;
 		let loader = JSAlert.loader('loading disc list...');
 		try {

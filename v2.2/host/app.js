@@ -35,18 +35,19 @@ window.startWii = (startBtn) => {
 window.openGameMenu = () => {
     const games = [
         {
-            name: 'Super Mario Odyssey',
-            gameId: 'sm64o',
+            name: 'Wii Sports',
+            gameId: 'RSPE01',
         },
         {
-            name: 'The Legend of Zelda: Breath of the Wild',
-            gameId: 'botw',
+            name: 'Wii Sports Resort',
+            gameId: 'RZTE01',
         }
     ];
-    const menu = GameMenu.create(null, games, {
+    const menu = GameMenu.create({
+        games,
         mode: 'host',
     });
-    // menu.destroy();
+    menu.open();
 }
 
 
