@@ -358,15 +358,39 @@ class RemoteGui {
 			{
 				name: 'Wii Sports',
 				gameId: 'RSPE01',
+				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
 			},
 			{
 				name: 'Wii Sports Resort',
 				gameId: 'RZTE01',
+				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
+			},
+			{
+				name: 'Wii Sports',
+				gameId: '1234',
+				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
+			},
+			{
+				name: 'Wii Sports Resort',
+				gameId: '12345',
+				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
+			},
+			{
+				name: 'Wii Sports',
+				gameId: '123456',
+				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
+			},
+			{
+				name: 'Wii Sports Resort',
+				gameId: '1234567',
+				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
 			}
 		];
 		const menu = GameMenu.create({
 			games,
 			mode: 'remote',
+			gamesSelectable: true,
+			showGameNames: false,
 		});
 		menu.open();
 

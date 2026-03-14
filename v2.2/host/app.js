@@ -37,15 +37,19 @@ window.openGameMenu = () => {
         {
             name: 'Wii Sports',
             gameId: 'RSPE01',
+            coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
         },
         {
             name: 'Wii Sports Resort',
             gameId: 'RZTE01',
+            coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
         }
     ];
     const menu = GameMenu.create({
         games,
         mode: 'host',
+        gamesSelectable: false,
+        showGameNames: false,
     });
     menu.open();
 }

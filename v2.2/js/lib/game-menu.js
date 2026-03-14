@@ -9,12 +9,12 @@
  *   menu.updateGames(newArray)
  *   menu.setMode('remote' | 'host')
  *
- * Games array format: [{ name: string, gameId: string }, ...]
- * Cover art is fetched automatically from gametdb.com using each gameId.
+ * Games array format: [{ name: string, gameId: string, coverUrl?: string }, ...]
  *
  * Options:
- *   games           Array<{name,gameId}>    (default: [])
+ *   games           Array<{name,gameId,coverUrl?}> (default: [])
  *   mode            'remote' | 'host'       (default: 'remote')
+ *   gamesSelectable boolean                 (default: true, controls card selection/highlight)
  *   onInsert(game)  called in remote mode   (game = { name, gameId })
  *   onDelete(game)  called in host mode per card
  *   onImport()      called when Import Game tapped (host mode)
@@ -24,8 +24,6 @@
  */
 (function (global) {
   'use strict';
-
-  const COVER_URL = 'https://art.gametdb.com/wii/cover3D/US/{id}.png';
 
   // ─── CSS injection ───────────────────────────────────────────────────────────
 
@@ -70,7 +68,7 @@
         height: min(88vh, 700px);
         border-radius: 18px;
         color-scheme: light dark;
-        background: var(--btn-background-color, white);
+        background: light-dark(var(--background-color, white), var(--wiiBtn-background-color, white));
         box-shadow: 0 8px 40px rgba(0,0,0,0.35);
         overflow: hidden;
         font-family: inherit;
@@ -89,6 +87,9 @@
       }
 
       .gm-search-wrap {
+        opacity: 0;
+        pointer-events: none;
+
         flex: 1;
         min-width: 130px;
         position: relative;
@@ -155,10 +156,6 @@
         .gm-toolbar-btn:hover {
           background: var(--btn-background-color, #dadada);
         }
-      }
-
-      .gm-import-btn {
-        display: none; /* shown only in host mode */
       }
 
       .gm-close-btn {
@@ -230,13 +227,35 @@
         box-shadow: 0 0 0 2px var(--home-btn-color, rgb(8 190 2));
       }
 
+      .gm-panel.gm-games-not-selectable .gm-card {
+        cursor: default;
+      }
+
+      .gm-panel.gm-games-not-selectable .gm-card:focus {
+        border-color: var(--container-border, #cfcfcf);
+        box-shadow: none;
+      }
+
+      .gm-panel.gm-games-not-selectable .gm-card.gm-selected {
+        border-color: var(--container-border, #cfcfcf);
+        box-shadow: none;
+      }
+
       .gm-card:active {
         transform: scale(0.97);
+      }
+
+      .gm-panel.gm-games-not-selectable .gm-card:active {
+        transform: none;
       }
 
       @media (hover: hover) {
         .gm-card:not(.gm-selected):hover {
           border-color: var(--home-btn-color, rgb(8 190 2));
+        }
+
+        .gm-panel.gm-games-not-selectable .gm-card:hover {
+          border-color: var(--container-border, #cfcfcf);
         }
       }
 
@@ -250,6 +269,14 @@
         border-radius: 6px;
         overflow: hidden;
         flex-shrink: 0;
+        transition: transform 0.15s;
+      }
+
+      .gm-card:not(.gm-selected) .gm-cover-wrap {
+        transform: translateY(calc(1.2rem + 4px));
+      }
+      .gm-card.gm-games-not-selectable .gm-cover-wrap {
+        transform: none !important;
       }
 
       .gm-cover {
@@ -318,6 +345,13 @@
         opacity: 0.45;
         cursor: not-allowed;
         transform: none !important;
+      }
+
+      .gm-insert-btn {
+        transition: opacity 0.15s;
+      }
+      .gm-card:not(.gm-selected) .gm-insert-btn {
+        opacity: 0;
       }
 
       @media (hover: hover) {
@@ -398,7 +432,11 @@
       }
       seen.add(g.gameId);
       return true;
-    }).map(g => ({ name: g.name.trim(), gameId: g.gameId.trim() }));
+    }).map(g => ({
+      name: g.name.trim(),
+      gameId: g.gameId.trim(),
+      coverUrl: typeof g.coverUrl === 'string' && g.coverUrl.trim() ? g.coverUrl.trim() : ''
+    }));
   }
 
   // ─── HTML building helpers ───────────────────────────────────────────────────
@@ -417,25 +455,28 @@
       .replace(/'/g, '&#39;');
   }
 
-  function coverUrl(gameId) {
-    return COVER_URL.replace('{id}', encodeURIComponent(gameId));
-  }
-
-  function buildCardHtml(game, mode, isBusy, isSelected, labels) {
-    const selectedClass = isSelected ? ' gm-selected' : '';
+  function buildCardHtml(game, mode, isBusy, isSelected, labels, gamesSelectable, showGameNames) {
+    const selectedClass = gamesSelectable && isSelected ? ' gm-selected' : '';
     const busyIcon = `<i class="fa-solid fa-compact-disc gm-busy-icon"></i>`;
 
-    const imgUrl = escapeAttr(coverUrl(game.gameId));
-    const coverHtml = `
+    const coverHtml = game.coverUrl
+      ? `
       <div class="gm-cover-wrap">
         <img
           class="gm-cover"
-          src="${imgUrl}"
+          src="${escapeAttr(game.coverUrl)}"
           alt="${escapeAttr(game.name)}"
           loading="lazy"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"
         />
         <div class="gm-cover-placeholder" style="display:none;">
+          <i class="fa-solid fa-gamepad"></i>
+          <span>${escapeHtml(game.gameId)}</span>
+        </div>
+      </div>`
+      : `
+      <div class="gm-cover-wrap">
+        <div class="gm-cover-placeholder">
           <i class="fa-solid fa-gamepad"></i>
           <span>${escapeHtml(game.gameId)}</span>
         </div>
@@ -459,11 +500,11 @@
     return `
       <div class="gm-card${selectedClass}"
            data-game-id="${escapeAttr(game.gameId)}"
-           tabindex="0"
-           role="button"
+           tabindex="${gamesSelectable ? '0' : '-1'}"
+           role="${gamesSelectable ? 'button' : 'group'}"
            aria-label="${escapeAttr(game.name)}">
         ${coverHtml}
-        <div class="gm-card-name">${escapeHtml(game.name)}</div>
+        ${showGameNames ? `<div class="gm-card-name">${escapeHtml(game.name)}</div>` : ''}
         ${actionBtn}
       </div>`;
   }
@@ -480,6 +521,8 @@
     const opts = Object.assign({
       games: [],
       mode: 'remote',
+      gamesSelectable: true,
+      showGameNames: true,
       onInsert: null,
       onDelete: null,
       onImport: null,
@@ -494,7 +537,7 @@
       import: 'Import Game',
       close: 'Close',
       searchPlaceholder: 'Search games\u2026',
-      noGames: 'No games installed.',
+      noGames: 'No games imported.',
       noResults: 'No games match your search.'
     }, opts.labels || {});
 
@@ -549,6 +592,7 @@
     const importBtn = overlay.querySelector('.gm-import-btn');
     const closeBtn  = overlay.querySelector('.gm-close-btn');
     const gridEl    = overlay.querySelector('.gm-grid');
+    const panelEl   = overlay.querySelector('.gm-panel');
 
     // ── Close logic ─────────────────────────────────────────────────────────────
     function closeOverlay() {
@@ -593,7 +637,9 @@
       }
 
       // Card body click = select
-      selectGame(gameId);
+      if (opts.gamesSelectable) {
+        selectGame(gameId);
+      }
     });
 
     // Arrow-key + Enter/Space navigation for desktop
@@ -650,9 +696,11 @@
 
     function applyMode() {
       importBtn.style.display = state.mode === 'host' ? '' : 'none';
+      panelEl.classList.toggle('gm-games-not-selectable', !opts.gamesSelectable);
     }
 
     function selectGame(gameId) {
+      if (!opts.gamesSelectable) return;
       state.selectedGameId = gameId;
       Array.from(gridEl.querySelectorAll('.gm-card')).forEach(c => {
         c.classList.toggle('gm-selected', c.dataset.gameId === gameId);
@@ -677,7 +725,7 @@
       const tmp = document.createElement('div');
       tmp.innerHTML = buildCardHtml(
         game, state.mode, busy,
-        state.selectedGameId === gameId, opts.labels
+        state.selectedGameId === gameId, opts.labels, opts.gamesSelectable, opts.showGameNames
       );
       card.replaceWith(tmp.firstElementChild);
     }
@@ -714,7 +762,9 @@
           state.mode,
           state.busyGameIds.has(game.gameId),
           state.selectedGameId === game.gameId,
-          opts.labels
+          opts.labels,
+          opts.gamesSelectable,
+          opts.showGameNames
         ))
         .join('');
     }
