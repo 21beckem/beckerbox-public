@@ -32,6 +32,24 @@ window.startWii = (startBtn) => {
 };
 
 
+window.openGameMenu = () => {
+    const games = [
+        {
+            name: 'Super Mario Odyssey',
+            gameId: 'sm64o',
+        },
+        {
+            name: 'The Legend of Zelda: Breath of the Wild',
+            gameId: 'botw',
+        }
+    ];
+    const menu = GameMenu.create(null, games, {
+        mode: 'host',
+    });
+    // menu.destroy();
+}
+
+
 window.importNewGame = async (importBtn) => {
     importBtn.disabled = true;
     document.querySelector('.loader-container').classList.add('active');
