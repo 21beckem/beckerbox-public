@@ -201,6 +201,7 @@
 
       /* ── Card ── */
       .gm-card {
+        position: relative;
         display: flex;
         flex-direction: column;
         align-items: center;
@@ -269,14 +270,6 @@
         border-radius: 6px;
         overflow: hidden;
         flex-shrink: 0;
-        transition: transform 0.15s;
-      }
-
-      .gm-card:not(.gm-selected) .gm-cover-wrap {
-        transform: translateY(calc(1.2rem + 4px));
-      }
-      .gm-card.gm-games-not-selectable .gm-cover-wrap {
-        transform: none !important;
       }
 
       .gm-cover {
@@ -348,10 +341,18 @@
       }
 
       .gm-insert-btn {
-        transition: opacity 0.15s;
+        position: absolute;
+        bottom: 1rem;
+        width: calc(100% - 20px);
+        box-shadow: 0px 2px 20px -4px #000000ad;
+        opacity: 1;
+        pointer-events: all;
+        transition: transform 0.15s, opacity 0.15s;
       }
       .gm-card:not(.gm-selected) .gm-insert-btn {
         opacity: 0;
+        pointer-events: none;
+        transform: translateY(.5rem);
       }
 
       @media (hover: hover) {
@@ -602,10 +603,7 @@
 
     closeBtn.addEventListener('click', closeOverlay);
 
-    // Remote mode: click on dimmer closes the overlay
-    dimmerEl.addEventListener('click', () => {
-      if (state.mode === 'remote') closeOverlay();
-    });
+    dimmerEl.addEventListener('click', closeOverlay);
 
     // Escape key closes
     overlay.addEventListener('keydown', (e) => {
