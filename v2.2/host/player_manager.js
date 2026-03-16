@@ -26,67 +26,18 @@ const PlayerManager = new (class PlayerManager {
         // tell the backend that we are ready
         window.electron?.init();
 
-        this.#managePeerServer();
-    }
-    #managePeerServer() {
-        // reconnect function
-        let reconnectCount = 5;
-        const reconnect = (reconnectIn=3000) => {
-            console.warn('disconnected from and/or can\'t connect to peer server.');
-            // if haven't tried reconnecting enough times, do that
-            if (reconnectCount > 0) {
-                console.log('attempting "reconnect" ' + reconnectCount);
-                
-                reconnectCount--;
-                this.peer.reconnect();
-                return;
-            }
-
-            // can't re-connect. Just restart the connection
-            clearInterval(subIntervalFunction);
-            this.peer?.destroy();
-
-            setTimeout(() => this.#managePeerServer(), reconnectIn);
-        }
-        console.log('connecting to peer server...');
-        this.#setQrCode(false);
-        
-        
-        const serverDisconnectTimeout = 15 * 1000;
-        let currentDisconnectTimeout = serverDisconnectTimeout;
-
         // setup peer
         this.peer = new Peer(null, {
             host: 'peerjs.beckersuite.com',
             secure: true
         });
-        this.peer.on('error', () => reconnect());
+        this.peer.on('error', () => this.peer.reconnect());
         this.peer.on('open', (id) => {
             this.#setQrCode(id);
             this.alertNewCode(id);
-
-            // for now on...
-            let onMessage = this.peer._socket._socket.onmessage
-            this.peer._socket._socket.onmessage = (e) => {
-                onMessage(e);
-                currentDisconnectTimeout = serverDisconnectTimeout;
-            }
         });
-        this.peer.on('disconnect', () => reconnect());
+        this.peer.on('disconnect', () => this.peer.reconnect());
         this.peer.on('connection', (conn) => this.#addNewPhone(conn) );
-
-        let subIntervalFunction;
-        let subIntervalTimeout = 1000;
-
-        subIntervalFunction = setInterval(() => {
-
-            currentDisconnectTimeout -= subIntervalTimeout;
-            if (currentDisconnectTimeout > 0) return;
-
-            // the connection has timed out
-            reconnect(1);
-
-        }, subIntervalTimeout)
     }
     async #addNewPhone(conn) {
         let slot = null;
