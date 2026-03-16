@@ -907,24 +907,26 @@ var mobileConsole = (function () {
       lines = preFilterTrace(traceToProcess); //pre filters all lines by filtering out all mobileConsole's own methods so mobileConsole runs Stealth and unobtrusive
       i = lines.length;
       while (i--) {
-        thisLine = lines[i].trim();
-        lineAndColumn = thisLine.match(/(?::)(\d+)(?::)(\d+)/);
-        url = urlFromString(thisLine).replace(lineAndColumn[0], '').split('#')[0] || '';
-        caller = htmlToString(thisLine.replace(urlFromString(thisLine), '').replace(separator, '').replace('at ', '').trim());
-        if (caller === '' || caller === lineAndColumn[0]) { continue; }
-        if (url[url.length - 1] === '/') {
-          txt = '(index)';
-        } else {
-          txt = url.split('\\').pop().split('/').filter(Boolean).pop() || caller;
-        }
-        callStack.push({
-          caller: caller,
-          url:    url ? url.split(':')[0] + ':' + url.split(':')[1] : caller,
-          linkText: txt + lineAndColumn[0],
-          line:   lineAndColumn[1],
-          col:    lineAndColumn[2],
-          originalLine: thisLine
-        });
+        try {
+          thisLine = lines[i].trim();
+          lineAndColumn = thisLine.match(/(?::)(\d+)(?::)(\d+)/);
+          url = urlFromString(thisLine).replace(lineAndColumn[0], '').split('#')[0] || '';
+          caller = htmlToString(thisLine.replace(urlFromString(thisLine), '').replace(separator, '').replace('at ', '').trim());
+          if (caller === '' || caller === lineAndColumn[0]) { continue; }
+          if (url[url.length - 1] === '/') {
+            txt = '(index)';
+          } else {
+            txt = url.split('\\').pop().split('/').filter(Boolean).pop() || caller;
+          }
+          callStack.push({
+            caller: caller,
+            url:    url ? url.split(':')[0] + ':' + url.split(':')[1] : caller,
+            linkText: txt + lineAndColumn[0],
+            line:   lineAndColumn[1],
+            col:    lineAndColumn[2],
+            originalLine: thisLine
+          });
+        } catch (e) {}
       }
       return callStack;
     }
