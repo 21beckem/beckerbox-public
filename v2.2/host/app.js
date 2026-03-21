@@ -50,13 +50,14 @@ window.openGameMenu = () => {
         mode: 'host',
         gamesSelectable: false,
         showGameNames: false,
+        onImport: () => importNewGame()
     });
+
     menu.open();
 }
 
 
-window.importNewGame = async (importBtn) => {
-    importBtn.disabled = true;
+const importNewGame = async () => {
     document.querySelector('.loader-container').classList.add('active');
     document.querySelector('.loader-container .msg').innerText = '';
 
@@ -67,9 +68,11 @@ window.importNewGame = async (importBtn) => {
             return;
         }
         const { filePath } = gameSelection;
-        document.querySelector('.loader-container .msg').innerText = 'Installing game...';
+        document.querySelector('.loader-container .msg').innerText = '';
 
-        let installResult = await window.electron.gameManager.installNewGame(filePath);
+        let installResult = await window.electron.gameManager.installNewGame(filePath, (status) => {
+            document.querySelector('.loader-container .msg').innerText = status;
+        });
         if (!installResult.success) {
             alert('Failed to install game. Please try again.');
             return;
@@ -79,7 +82,6 @@ window.importNewGame = async (importBtn) => {
         alert('An error occurred while importing the game. Please try again.');
     }
     finally {
-        importBtn.disabled = false;
         document.querySelector('.loader-container').classList.remove('active');
     }
 
