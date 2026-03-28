@@ -9,10 +9,10 @@
  *   menu.updateGames(newArray)
  *   menu.setMode('remote' | 'host')
  *
- * Games array format: [{ name: string, gameId: string, coverUrl?: string }, ...]
+ * Games array format: [{ name: string, gameId: string, images: { cover?: string, disc?: string } }, ...]
  *
  * Options:
- *   games           Array<{name,gameId,coverUrl?}> (default: [])
+ *   games           Array<{name,gameId,images}> (default: [])
  *   mode            'remote' | 'host'       (default: 'remote')
  *   gamesSelectable boolean                 (default: true, controls card selection/highlight)
  *   onInsert(game)  called in remote mode   (game = { name, gameId })
@@ -436,7 +436,10 @@
     }).map(g => ({
       name: g.name.trim(),
       gameId: g.gameId.trim(),
-      coverUrl: typeof g.coverUrl === 'string' && g.coverUrl.trim() ? g.coverUrl.trim() : ''
+      images: {
+        cover: typeof g.images.cover === 'string' && g.images.cover.trim() ? g.images.cover.trim() : '',
+        disc: typeof g.images.disc === 'string' && g.images.disc.trim() ? g.images.disc.trim() : ''
+      }
     }));
   }
 
@@ -460,12 +463,12 @@
     const selectedClass = gamesSelectable && isSelected ? ' gm-selected' : '';
     const busyIcon = `<i class="fa-solid fa-compact-disc gm-busy-icon"></i>`;
 
-    const coverHtml = game.coverUrl
+    const coverHtml = game.images.cover
       ? `
       <div class="gm-cover-wrap">
         <img
           class="gm-cover"
-          src="${escapeAttr(game.coverUrl)}"
+          src="${escapeAttr(game.images.cover)}"
           alt="${escapeAttr(game.name)}"
           loading="lazy"
           onerror="this.style.display='none';this.nextElementSibling.style.display='flex';"

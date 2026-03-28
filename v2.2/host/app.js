@@ -31,29 +31,27 @@ window.startWii = (startBtn) => {
     startBtn.disabled = true;
 };
 
+let gamesList = [];
+
+const gameMenu = GameMenu.create({
+    games: gamesList,
+    mode: 'host',
+    gamesSelectable: false,
+    showGameNames: false,
+    onImport: () => importNewGame()
+});
+await electron.gameManager.getGames().then(updateGames);
 
 window.openGameMenu = () => {
-    const games = [
-        {
-            name: 'Wii Sports',
-            gameId: 'RSPE01',
-            coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
-        },
-        {
-            name: 'Wii Sports Resort',
-            gameId: 'RZTE01',
-            coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
-        }
-    ];
-    const menu = GameMenu.create({
-        games,
-        mode: 'host',
-        gamesSelectable: false,
-        showGameNames: false,
-        onImport: () => importNewGame()
-    });
+    gameMenu.open();
+}
 
-    menu.open();
+function updateGames(games) {
+    gamesList = games.map(g => ({
+        ...g,
+        name: '-'
+    }));
+    gameMenu.updateGames(gamesList);
 }
 
 
@@ -77,6 +75,8 @@ const importNewGame = async () => {
             alert('Failed to install game. Please try again.');
             return;
         }
+        
+        updateGames(await electron.gameManager.getGames());
     } catch (error) {
         console.error('Error occurred while importing new game:', error);
         alert('An error occurred while importing the game. Please try again.');
@@ -84,6 +84,4 @@ const importNewGame = async () => {
     finally {
         document.querySelector('.loader-container').classList.remove('active');
     }
-
-    alert('Game installed successfully!');
 }
