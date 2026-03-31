@@ -38,7 +38,8 @@ const gameMenu = GameMenu.create({
     mode: 'host',
     gamesSelectable: false,
     showGameNames: false,
-    onImport: () => importNewGame()
+    onImport: () => importNewGame(),
+    onDelete: (game) => deleteGame(game?.gameId)
 });
 await electron.gameManager.getGames().then(updateGames);
 
@@ -84,4 +85,20 @@ const importNewGame = async () => {
     finally {
         document.querySelector('.loader-container').classList.remove('active');
     }
+}
+const deleteGame = async (gameId) => {
+    if (!gameId) {
+        console.error('Invalid game ID');
+        return;
+    }
+    let confirmed = await JSAlert.confirm('Are you sure you want to delete this game?<br><br><b>Note:</b> Your progress will NOT be lost, but the game disc file itself will be deleted', 'Delete Game', JSAlert.Icons.Warning);
+    if (!confirmed) return;
+
+    let result = await window.electron.gameManager.deleteGame(gameId);
+
+    if (!result.success) {
+        JSAlert.alert(result.error ?? 'Failed to delete game. Please try again.', 'Error');
+        return;
+    }
+    updateGames(await electron.gameManager.getGames());
 }
