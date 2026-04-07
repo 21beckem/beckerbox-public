@@ -791,7 +791,8 @@
       open() {
         overlay.classList.remove('gm-hidden');
         // Focus the search box for keyboard users
-        setTimeout(() => searchEl.focus(), 50);
+        if (opts.mode !== 'remote')
+          setTimeout(() => searchEl.focus(), 50);
       },
 
       /** Hide the overlay. */
