@@ -41,18 +41,16 @@ const gameMenu = GameMenu.create({
     onImport: () => importNewGame(),
     onDelete: (game) => deleteGame(game?.gameId)
 });
-await electron.gameManager.getGames().then(updateGames);
+await updateGames();
 
-window.openGameMenu = () => {
+window.openGameMenu = async () => {
+    await updateGames();
     gameMenu.open();
 }
 
-function updateGames(games) {
-    gamesList = games.map(g => ({
-        ...g,
-        name: '-'
-    }));
-    gameMenu.updateGames(gamesList);
+async function updateGames() {
+    let games = await electron.gameManager.getGames();
+    gameMenu.updateGames(games);
 }
 
 
@@ -62,10 +60,9 @@ const importNewGame = async () => {
 
     try {
         let gameSelection = await window.electron.gameManager.selectGameFile();
-        if (!gameSelection.success) {
-            alert('Failed to select game file. Please try again.');
+        if (!gameSelection.success)
             return;
-        }
+        
         const { filePath } = gameSelection;
         document.querySelector('.loader-container .msg').innerText = '';
 
@@ -77,7 +74,7 @@ const importNewGame = async () => {
             return;
         }
         
-        updateGames(await electron.gameManager.getGames());
+        await updateGames();
     } catch (error) {
         console.error('Error occurred while importing new game:', error);
         alert('An error occurred while importing the game. Please try again.');
@@ -100,5 +97,5 @@ const deleteGame = async (gameId) => {
         JSAlert.alert(result.error ?? 'Failed to delete game. Please try again.', 'Error');
         return;
     }
-    updateGames(await electron.gameManager.getGames());
+    await updateGames();
 }

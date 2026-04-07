@@ -19,7 +19,13 @@ const status = {
 		</div>
 		<br>
 		Please ${REFRESH}`
-}
+};
+const gameMenu = GameMenu.create({
+	games: [],
+	mode: 'remote',
+	gamesSelectable: true,
+	showGameNames: false,
+});
 
 const PACKET = {
 	Home: 0,
@@ -103,8 +109,8 @@ class Remote {
 			this.GUI.showRemotePage();
 			this.#startSendingPackets();
 
-			// close connection with peerjs server after a sec
-			setTimeout(() => this.peer._socket.close(), 500);
+			// preload game images
+			setTimeout(() => this.getGames(), 100);
 
 			// set the id to this in the URL without refresh
 			history.replaceState(null, null, '?id=' + code);
@@ -181,8 +187,21 @@ class Remote {
 		setInterval(() => this.#sendPacketNow(), 10);
 	}
 
-	async getDiscs() {
-		return this.#getResultFromConnection({ menuAction: 'getDiscs' });
+	async getGames() {
+		let result = await this.#getResultFromConnection({ menuAction: 'gameManager.getGames' });
+		console.log('Received game list from host:', result);
+
+		// start loding the images for the games so that they're ready by the time the user opens the menu
+		result?.forEach(game => {
+			const img = new Image();
+			img.src =  game.images.cover.uri
+					?? game.images.cover.url
+					?? game.images.disc.uri
+					?? game.images.disc.url
+					?? '';
+		});
+		gameMenu.updateGames(result);
+		return result;
 	}
 	#getResultFromConnection(toSend, timeout=2000) {
 		return new Promise((resolve, reject) => {
@@ -203,10 +222,10 @@ class Remote {
 			}, timeout);
 		});
 	}
-	changeDisc(path) {
+	changeDisc(gameId) {
 		this.conn.send({
 			menuAction: 'changeDisc',
-			path
+			gameId
 		});
 	}
 	powerOff() {
@@ -227,7 +246,6 @@ class RemoteGui {
 	b_states = [0, 0];
 	Remote = null;
 	constructor(remote) {
-		this.changeDisc();
 		this.Remote = remote;
 		_('launchFullscreenBtn').addEventListener('click', GeneralGUI.attemptFullscreen);
 		_('menuBarsBtn').addEventListener('click', () => this.openMenu());
@@ -352,76 +370,14 @@ class RemoteGui {
 		_('RemotePage').style.display = 'none';
 	}
 	async changeDisc() {
+		await this.Remote.getGames();
+		gameMenu.open();
 		this.closeMenu();
-		
-		const games = [
-			{
-				name: 'Wii Sports',
-				gameId: 'RSPE01',
-				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
-			},
-			{
-				name: 'Wii Sports Resort',
-				gameId: 'RZTE01',
-				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
-			},
-			{
-				name: 'Wii Sports',
-				gameId: '1234',
-				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
-			},
-			{
-				name: 'Wii Sports Resort',
-				gameId: '12345',
-				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
-			},
-			{
-				name: 'Wii Sports',
-				gameId: '123456',
-				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png'
-			},
-			{
-				name: 'Wii Sports Resort',
-				gameId: '1234567',
-				coverUrl: 'https://art.gametdb.com/wii/cover3D/US/RZTE01.png'
-			}
-		];
-		const menu = GameMenu.create({
-			games,
-			mode: 'remote',
-			gamesSelectable: true,
-			showGameNames: false,
+		gameMenu.on('insert', (game) => {
+			gameMenu.close();
+			
+			this.Remote.changeDisc(game.gameId);
 		});
-		menu.open();
-
-		return;
-
-		
-		let discs;
-		let loader = JSAlert.loader('loading disc list...');
-		try {
-			discs = await this.Remote.getDiscs();
-		} catch (e) { discs = false }
-		loader.dismiss();
-		if (discs===false) {
-			JSAlert.alert('Please switch to the system menu (Wii Menu) before changing discs.', 'Failed to get disc list', JSAlert.Icons.Failed);
-			return;
-		}
-		if (discs.length === 0) {
-			JSAlert.alert('Your games folder is empty. Please go to the BeckerBox menu and click "Open Games Folder", then place your game files in the folder that opens', 'No Discs Found', JSAlert.Icons.Info);
-			return;
-		}
-
-		let discPath = await window.selectSwiper.prompt(
-			Object.fromEntries(
-				discs.map(d => [d.name, d.path])
-			)
-		);
-
-		console.log(discPath);
-		if (discPath) {
-			this.Remote.changeDisc(discPath);
-		}
 	}
 	async #powerOff() {
 		let confirmed = await JSAlert.confirm('Are you sure you want to power off the BeckerBox?', 'Power Off', JSAlert.Icons.Warning)

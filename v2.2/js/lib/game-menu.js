@@ -414,14 +414,25 @@
       return [];
     }
     const seen = new Set();
+    function getImageUri(img) {
+      if (typeof img === 'string' && img.trim()) {
+        return img.trim();
+      } else {
+        if (typeof img.uri === 'string' && img.uri.trim()) {
+          return img.uri.trim();
+        } else if (typeof img.url === 'string' && img.url.trim()) {
+          return img.url.trim();
+        }
+      }
+
+    }
     return games.filter((g, idx) => {
       if (!g || typeof g !== 'object') {
         console.warn(`[GameMenu] Skipping index ${idx}: not an object`);
         return false;
       }
       if (typeof g.name !== 'string' || !g.name.trim()) {
-        console.warn(`[GameMenu] Skipping index ${idx}: "name" must be a non-empty string`);
-        return false;
+        g.name = g.gameId || 'Unknown Game';
       }
       if (typeof g.gameId !== 'string' || !g.gameId.trim()) {
         console.warn(`[GameMenu] Skipping index ${idx}: "gameId" must be a non-empty string`);
@@ -437,8 +448,8 @@
       name: g.name.trim(),
       gameId: g.gameId.trim(),
       images: {
-        cover: typeof g.images.cover === 'string' && g.images.cover.trim() ? g.images.cover.trim() : '',
-        disc: typeof g.images.disc === 'string' && g.images.disc.trim() ? g.images.disc.trim() : ''
+        cover: getImageUri(g.images.cover),
+        disc: getImageUri(g.images.disc)
       }
     }));
   }
@@ -801,6 +812,23 @@
         state.mode = newMode;
         applyMode();
         renderGrid();
+      },
+
+      /** Made way to set "on" methods */
+      on(event, handler) {
+        if (event === 'insert' && typeof handler === 'function') {
+          opts.onInsert = handler;
+        } else if (event === 'delete' && typeof handler === 'function') {
+          opts.onDelete = handler;
+        } else if (event === 'import' && typeof handler === 'function') {
+          opts.onImport = handler;
+        } else if (event === 'select' && typeof handler === 'function') {
+          opts.onSelect = handler;
+        } else if (event === 'close' && typeof handler === 'function') {
+          opts.onClose = handler;
+        } else {
+          console.warn(`[GameMenu] Unknown event "${event}" or handler is not a function:`, handler);
+        }
       }
     };
   }

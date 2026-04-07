@@ -63,12 +63,28 @@ export default class Player {
         this.conn.on('data', (data) => {
             if (data.menuAction) {
                 switch (data.menuAction) {
-                    case 'getDiscs':
-                        window.electron?.getDiscList()
-                            .then(result => this.conn.send({result}));
+                    case 'gameManager.getGames':
+                        function omitDataUris(result) {
+                            return result?.map(game => ({
+                                ...game,
+                                images: {
+                                    ...game.images,
+                                    cover: {
+                                        ...game.images.cover,
+                                        uri: '',
+                                    },
+                                    disc: {
+                                        ...game.images.disc,
+                                        uri: '',
+                                    }
+                                }
+                            }));
+                        }
+                        window.electron?.gameManager.getGames()
+                            .then(result => this.conn.send({result: omitDataUris(result)}));
                         break;
                     case 'changeDisc':
-                        window.electron?.changeDisc(data.path);
+                        window.electron?.changeDisc(data.gameId);
                         break;
                     case 'powerOff':
                         window.electron?.powerOff()

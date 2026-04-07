@@ -26,6 +26,7 @@ html, body {
 	padding: 0;
 	background: var(--background-color);
 	font-family: 'ADLaM Display';
+	overflow: hidden;
 }
 * {
 	-webkit-touch-callout: none; /* iOS Safari */
