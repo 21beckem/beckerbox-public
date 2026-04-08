@@ -3,12 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
     <title>BeckerBox</title>
 	<script src="../js/jsalert.js" light-mode></script>
     <script src="fake-electron.js"></script>
     <script src="qrcode.min.js"></script>
     <link rel="stylesheet" href="pointer.css">
     <style>
+:root {
+    color-scheme: light;
+}
 @font-face {
     font-family: 'Wii';
     src: url('fonts/wii.ttf') format('truetype');
@@ -18,6 +22,7 @@ i {
 }
 html {
     overflow: hidden;
+    scrollbar-color: #000000ad #fff;
 }
 body {
     font-family: 'Wii', sans-serif;

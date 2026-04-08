@@ -31,19 +31,19 @@ main {
     flex-direction: row;
     flex: 1;
     .left-steps {
-        flex: 0 0 280px;
         background-color: white;
         border-right: 1px solid #e0e0e0;
         overflow-y: auto;
+        height: calc(100vh - 2.75rem);
         display: flex;
+        justify-content: space-evenly;
         flex-direction: column;
-        padding: 20px 0;
+        padding: 0 50px;
     }
     .step-item {
         display: flex;
-        flex-direction: column;
+        flex-direction: row;
         align-items: center;
-        padding: 20px;
         position: relative;
     }
     .step-item:not(:last-child):before {
@@ -70,7 +70,7 @@ main {
         align-items: center;
         justify-content: center;
         font-size: 28px;
-        margin-bottom: 10px;
+        margin-right: 10px;
         background-color: #f0f0f0;
         border: 2px solid #e0e0e0;
         color: #999;
@@ -418,11 +418,6 @@ button.padding {
         <div class="msg"></div>
     </div>
 
-    <footer>
-        <div class="buttons-left"></div>
-        <div class="buttons-right"></div>
-    </footer>
-
     <script>
 
 class InstallerGUI {
@@ -564,7 +559,10 @@ class InstallerGUI {
         document.getElementById('page-subtitle').textContent = step.instructions;
 
         const instructionsDiv = document.getElementById('step-instructions');
-        instructionsDiv.innerHTML = `<p>${step.details}</p>`;
+        const detailsParagraph = document.createElement('p');
+        detailsParagraph.textContent = step.details;
+        instructionsDiv.innerHTML = '';
+        instructionsDiv.appendChild(detailsParagraph);
 
         const detailsDiv = document.getElementById('step-details');
         detailsDiv.innerHTML = '';
@@ -609,8 +607,13 @@ class InstallerGUI {
 
         const actionBtn = document.createElement('button');
         actionBtn.className = 'primary';
-        actionBtn.textContent = step.buttonText;
-        actionBtn.onclick = () => this.handleStepAction(step.buttonAction);
+        if (step?.check?.success) {
+            actionBtn.textContent = 'Next';
+            actionBtn.onclick = () => this.nextStep();
+        } else {
+            actionBtn.textContent = step.buttonText;
+            actionBtn.onclick = () => this.handleStepAction(step.buttonAction);
+        }
         buttonsDiv.appendChild(actionBtn);
 
         // Only show Next button if not the last step

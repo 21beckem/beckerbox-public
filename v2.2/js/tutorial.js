@@ -60,14 +60,6 @@ const steps = [
 		popover: {
 			title: "All other options",
 			description: "Since you will be using the remote itself most of the time, all other options are inside this menu. Tap on the menu button to continue!",
-			disableButtons: ['next'],
-			onPopoverRender: (p, o) => {
-				let selector = o.driver.getActiveStep().element;
-				once(selector, () => {
-					document.querySelector(selector)?.click();
-					o.driver.moveNext();
-				});
-			}
 		}
 	},
 	{
