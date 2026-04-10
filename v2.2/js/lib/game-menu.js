@@ -47,9 +47,10 @@
         pointer-events: all;
       }
 
-      .gm-overlay.gm-hidden {
-        opacity: 0;
-        pointer-events: none;
+      .gm-overlay.gm-hidden,
+      .gm-overlay.gm-hidden * {
+        opacity: 0 !important;
+        pointer-events: none !important;
       }
 
       .gm-dimmer {
