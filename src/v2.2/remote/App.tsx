@@ -1,4 +1,5 @@
-import type { Component } from 'solid-js'
+import { onMount, type Component } from 'solid-js'
+import { initializeGeneralGUIState } from './general-gui'
 
 const icon = (name: string, style?: any) => <i class={`fa-solid ${name}`} style={style}></i>
 
@@ -135,6 +136,10 @@ const LayoutThree: Component = () => (
 )
 
 const App: Component = () => {
+  onMount(() => {
+    initializeGeneralGUIState()
+  })
+
   return (
     <>
       <section id="openFullScreenPrompt">

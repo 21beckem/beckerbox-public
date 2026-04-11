@@ -1,5 +1,5 @@
 const noSleep = new window.NoSleep()
-const byId = (id: string) => document.getElementById(id) as HTMLElement
+const byId = (id: string) => document.getElementById(id) as HTMLElement | null
 
 let launchedFullScreen = false
 const onMobile = window.matchMedia('(any-pointer: coarse)').matches
@@ -8,9 +8,14 @@ const searchParams = new URLSearchParams(window.location.search)
 export function initializeGeneralGUIState() {
   if (!onMobile || searchParams.get('id') === 'dev-env') {
     document.documentElement.classList.add('mobile')
-    const openPrompt = document.getElementById('openFullScreenPrompt')
+    const openPrompt = byId('openFullScreenPrompt')
     if (openPrompt) {
       openPrompt.style.display = 'none'
+    } else {
+      // In dev, module evaluation can race initial render on first load.
+      requestAnimationFrame(() => {
+        byId('openFullScreenPrompt')?.style.setProperty('display', 'none')
+      })
     }
     launchedFullScreen = true
   }
@@ -32,7 +37,7 @@ export default class GeneralGUI {
     else if (typeof elem.webkitEnterFullscreen === 'function') await elem.webkitEnterFullscreen()
     else if (typeof elem.msRequestFullscreen === 'function') await elem.msRequestFullscreen()
     else if (typeof elem.oRequestFullscreen === 'function') await elem.oRequestFullscreen()
-    else byId('openFullScreenPrompt').style.display = 'none'
+    else byId('openFullScreenPrompt')?.style.setProperty('display', 'none')
 
     try {
       await screen.orientation.lock('portrait')
@@ -42,9 +47,9 @@ export default class GeneralGUI {
 
     window.scrollTo(0, 0)
     document.body.scrollTop = 0
-    byId('RemotePage').style.overflowY = 'unset'
+    byId('RemotePage')?.style.setProperty('overflow-y', 'unset')
     setTimeout(() => {
-      byId('RemotePage').style.overflowY = 'hidden'
+      byId('RemotePage')?.style.setProperty('overflow-y', 'hidden')
     }, 10)
 
     launchedFullScreen = true

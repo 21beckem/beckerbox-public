@@ -80,6 +80,19 @@ function preserveLegacyVersionPages(): Plugin {
         fs.cpSync(sourceDir, targetDir, { recursive: true })
       }
 
+      const sharedRootAssets = ['fontawesome', 'webfonts']
+      for (const dirName of sharedRootAssets) {
+        const sourcePath = path.join(projectRoot, dirName)
+        const targetPath = path.join(distRoot, dirName)
+
+        if (!fs.existsSync(sourcePath)) {
+          continue
+        }
+
+        fs.rmSync(targetPath, { recursive: true, force: true })
+        fs.cpSync(sourcePath, targetPath, { recursive: true })
+      }
+
       const v22Source = path.join(projectRoot, 'src', 'v2.2')
       const v22Dist = path.join(distRoot, 'v2.2')
       if (!fs.existsSync(v22Source)) {

@@ -1,11 +1,9 @@
 import GoogleAnalytics from './google-an'
-import { initializeGeneralGUIState } from './general-gui'
 import { Remote } from './remote-core'
 import { startBeckerboxTour } from './tutorial'
 
 export function bootstrapRemote() {
   GoogleAnalytics.init()
-  initializeGeneralGUIState()
 
   window.remote = null
 
