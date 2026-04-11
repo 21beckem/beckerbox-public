@@ -23,6 +23,29 @@ function preserveLegacyVersionPages(): Plugin {
         const requestUrl = new URL(req.url, 'http://localhost')
         const { pathname, search } = requestUrl
 
+        if (pathname === '/v2.2') {
+          req.url = '/v2.2/'
+          next()
+          return
+        }
+
+        if (pathname === '/v2.2/host') {
+          req.url = '/v2.2/host/'
+          next()
+          return
+        }
+
+        if (pathname.startsWith('/v2.2/')) {
+          const mappedPath = pathname.endsWith('/') ? `/src${pathname}index.html` : `/src${pathname}`
+          const mappedFilePath = path.resolve(projectRoot, `.${mappedPath}`)
+
+          if (fs.existsSync(mappedFilePath)) {
+            req.url = `${mappedPath}${search}`
+            next()
+            return
+          }
+        }
+
         if (pathname === '/' || !pathname.endsWith('/')) {
           next()
           return
@@ -56,10 +79,72 @@ function preserveLegacyVersionPages(): Plugin {
         fs.rmSync(targetDir, { recursive: true, force: true })
         fs.cpSync(sourceDir, targetDir, { recursive: true })
       }
+
+      const v22Source = path.join(projectRoot, 'src', 'v2.2')
+      const v22Dist = path.join(distRoot, 'v2.2')
+      if (!fs.existsSync(v22Source)) {
+        return
+      }
+
+      const staticPaths = [
+        'css',
+        'img',
+        'js',
+        'manifest.webmanifest',
+        'installation.html',
+        'license-input.html',
+        path.join('host', 'fonts'),
+        path.join('host', 'pointer.css'),
+        path.join('host', 'fake-electron.js'),
+        path.join('host', 'qrcode.min.js'),
+      ]
+
+      for (const relativePath of staticPaths) {
+        const sourcePath = path.join(v22Source, relativePath)
+        const targetPath = path.join(v22Dist, relativePath)
+
+        if (!fs.existsSync(sourcePath)) {
+          continue
+        }
+
+        fs.rmSync(targetPath, { recursive: true, force: true })
+        const sourceStats = fs.statSync(sourcePath)
+        if (sourceStats.isDirectory()) {
+          fs.cpSync(sourcePath, targetPath, { recursive: true })
+        } else {
+          fs.mkdirSync(path.dirname(targetPath), { recursive: true })
+          fs.copyFileSync(sourcePath, targetPath)
+        }
+      }
+
+      const builtV22Root = path.join(distRoot, 'src', 'v2.2')
+      const builtRemoteIndex = path.join(builtV22Root, 'index.html')
+      const builtHostIndex = path.join(builtV22Root, 'host', 'index.html')
+
+      if (fs.existsSync(builtRemoteIndex)) {
+        fs.mkdirSync(v22Dist, { recursive: true })
+        fs.copyFileSync(builtRemoteIndex, path.join(v22Dist, 'index.html'))
+      }
+
+      if (fs.existsSync(builtHostIndex)) {
+        fs.mkdirSync(path.join(v22Dist, 'host'), { recursive: true })
+        fs.copyFileSync(builtHostIndex, path.join(v22Dist, 'host', 'index.html'))
+      }
     },
   }
 }
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        main: path.resolve(process.cwd(), 'index.html'),
+        'v2.2/index': path.resolve(process.cwd(), 'src/v2.2/index.html'),
+        'v2.2/host/index': path.resolve(process.cwd(), 'src/v2.2/host/index.html'),
+        'v2.2/installation': path.resolve(process.cwd(), 'src/v2.2/installation.html'),
+        'v2.2/license-input': path.resolve(process.cwd(), 'src/v2.2/license-input.html'),
+      },
+    },
+  },
   plugins: [solid(), preserveLegacyVersionPages()],
 })
