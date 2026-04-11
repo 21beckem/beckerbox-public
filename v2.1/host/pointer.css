@@ -1,0 +1,25 @@
+.pointer div {
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0 50% 50% 50%;
+    transform: translate(4px, 11px) rotate(38deg);
+    filter: drop-shadow(2px 2px 5px gray);
+    box-shadow: -1px -2px 15px 0px #ffffff6b inset;
+}
+.pointer {
+    pointer-events: none;
+    position: fixed;
+    transform: translate(-50%, 0);
+    margin: 0;
+    padding: 0;
+    width: 55px;
+    height: 55px;
+    z-index: 9999999;
+}
+.P1.pointer div { background-color: #1f8cfa; }
+.P2.pointer div { background-color: #f84a3c; }
+.P3.pointer div { background-color: #2ea463; }
+.P4.pointer div { background-color: #fbb432; }

@@ -55,7 +55,8 @@ const PACKET = {
 	NunX: 128,
 	NunY: 128
 };
-const iPhoneAdjustment = navigator.userAgent.toLowerCase().includes('iphone') ? -1 : 1;
+const iPhoneAdjustment = navigator.userAgent.toLowerCase().includes('iphone') ||
+	navigator.userAgent.toLowerCase().includes('macintosh') ? -1 : 1;
 
 class Remote {
 	searchParams = new URLSearchParams(window.location.search);
@@ -98,7 +99,9 @@ class Remote {
 		}
 		code = code || this.searchParams.get('id');
 
-		this.conn = this.peer.connect(code, PEER_CONFIG);
+		if (code === 'dev-env') return this.GUI.showRemotePage();
+
+		this.conn = this.peer.connect(code);
 		this.conn.on('open', () => {
 			this.connOpen = true;
 			console.log('Peer opened');
@@ -396,8 +399,8 @@ class RemoteGui {
 		else
 			this.handDominance = this.handDominance==='right' ? 'left' : 'right';
 
-		document.documentElement.style.setProperty('--bBtn-show-left',  (this.handDominance==='right' ? 'auto' : 'none'));
-		document.documentElement.style.setProperty('--bBtn-show-right', (this.handDominance==='right' ? 'none' : 'auto'));
+		document.documentElement.style.setProperty('--bBtn-show-left',  (this.handDominance==='right' ? 'flex' : 'none'));
+		document.documentElement.style.setProperty('--bBtn-show-right', (this.handDominance==='right' ? 'none' : 'flex'));
 		this.#updateSideMenuText();
 	}
 	
