@@ -196,10 +196,7 @@ const App: Component = () => {
         </div>
 
         <div class="top-nav">
-          <div id="menuBarsBtn">{icon('fa-sliders')}</div>
-          <div id="calibrateBtn" style="display: none;">
-            {icon('fa-crosshairs')}
-          </div>
+          <div id="menuBarsBtn">{icon('fa-sliders', { opacity: 0.6 })}</div>
         </div>
 
         <div data-key="Nun" class="btn" data-dispatches-events="true" style="display: none;"></div>
