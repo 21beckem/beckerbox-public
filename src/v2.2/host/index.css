@@ -1,0 +1,39 @@
+/* ─────────────────────────────────────────────
+   DISCRETE SLIDER (video quality + audio)
+───────────────────────────────────────────── */
+.notched-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 14px;
+  border-radius: 7px;
+  outline: none;
+  cursor: pointer;
+  width: 100%;
+}
+
+.notched-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #2d9a6b;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.notched-slider::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.notched-slider::-moz-range-thumb {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #2d9a6b;
+  border: 4px solid #fff;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.35);
+  cursor: pointer;
+}

@@ -40,6 +40,8 @@ window.openGameMenu = async () => {
 
 async function updateGames() {
   const games = await window.electron.gameManager.getGames()
+  console.log('Loaded games:', games);
+  
   gameMenu.updateGames(games)
 }
 

@@ -23,12 +23,21 @@ export default class Pointer {
     this.hoveredElements[0]?.click()
     this.playerManager.pointerClicks[this.slot] = false
   }
+  private bBtnClick() {
+    this.playerManager.bBtnClick()
+  }
+  private homeBtnClick() {
+    this.playerManager.homeBtnClick()
+  }
 
   newPacket(data: any) {
     this.move(-data.Gyroscope_Yaw, -data.Gyroscope_Pitch)
     if (data.raw) this.rotateTo(data.raw.Gyroscope_Roll)
 
     if (data.A === 1 && this.states.A === 0) this.clickAtPointer()
+    if (data.B === 1 && this.states.B === 0) this.bBtnClick()
+    if (data.Home === 1 && this.states.Home === 0) this.homeBtnClick()
+
 
     this.states = data
   }

@@ -1,4 +1,5 @@
 import Player from './player'
+import * as Overlay from './components/Overlay'
 
 class PlayerManager {
   private backendActivatedPlayers = [false, false, false, false]
@@ -87,6 +88,13 @@ class PlayerManager {
 
   alertNewCode(code: string) {
     this.players.forEach((player) => player?.alertNewCode(code))
+  }
+
+  bBtnClick() {
+    Overlay.goBack()
+  }
+  homeBtnClick() {
+    Overlay.setOpen((prev: boolean) => !prev)
   }
 
   private async getResultFromConnection(conn: any, toSend: any, timeout = 2000) {

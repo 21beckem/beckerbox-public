@@ -1,10 +1,5 @@
 if (window.electron === undefined) {
     let a = (title, message) => JSAlert.alert(message, title);
-    window.addEventListener('DOMContentLoaded', () => {
-        document.querySelector('button#close').onclick = () => {
-            a('Close', 'After purchasing BeckerBox, this would close the application.');
-        };
-    });
     window.electron = {
         FAKE: true, // used to detect if we're running in fake electron mode
         init: () => {

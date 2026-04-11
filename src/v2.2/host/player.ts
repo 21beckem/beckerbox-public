@@ -1,51 +1,61 @@
 import Pointer from './pointer'
 import Heartbeat from './heartbeat'
+import { setPlayerSlot } from './host-state'
 
 export default class Player {
   readonly slot: number
   readonly conn: any
   private parent: any
   private alertedAboutPowerOff = false
-  private remoteContainer: HTMLElement
-  private healthState: 'healthy' | 'sick' | 'dead' = 'healthy'
+  private healthState: 'healthy' | 'sick' | 'dead' = 'dead'
   private pointer: Pointer
   private heartbeat: Heartbeat | null = null
   private removed = false
+  private avatarSrc: string | null = null
 
   constructor(slot: number, conn: any, parent: any) {
     this.slot = slot
     this.conn = conn
     this.parent = parent
     this.pointer = new Pointer(this.slot, parent)
-    this.remoteContainer = document.querySelector(`remote-container.p${slot + 1}`) as HTMLElement
+    this.avatarSrc = this.generateAvatarSrc()
     this.initConn()
     this.ui.healthy()
   }
 
+  private generateAvatarSrc() {
+    return `https://api.dicebear.com/8.x/micah/svg?seed=player-${this.slot}-${Date.now()}&backgroundColor=b6e3f4&radius=50`
+  }
+
+  get avatar() {
+    return this.avatarSrc
+  }
+  private updatePlayerSlot() {
+    if (this.removed) return
+    setPlayerSlot(this.slot, {
+      slot: this.slot,
+      connected: this.removed ? false : true,
+      health: this.healthState,
+      avatarSrc: this.removed ? null : this.avatarSrc,
+    })
+  }
+
+
   private ui = {
     healthy: () => {
+      if (this.removed || this.healthState === 'healthy') return
       this.healthState = 'healthy'
-      this.remoteContainer.classList.add('connected')
-      this.remoteContainer.classList.remove('signal-lost')
-      const button = this.remoteContainer.querySelector('.disconnect') as HTMLButtonElement
-      button.innerText = 'Disconnect'
-      button.onclick = () => this.parent.removePlayer(this.slot)
+      this.updatePlayerSlot()
     },
     sick: () => {
+      if (this.removed || this.healthState === 'sick') return
       this.healthState = 'sick'
-      this.remoteContainer.classList.remove('connected')
-      this.remoteContainer.classList.add('signal-lost')
-      const button = this.remoteContainer.querySelector('.disconnect') as HTMLButtonElement
-      button.innerText = 'Disconnect'
-      button.onclick = () => this.parent.removePlayer(this.slot)
+      this.updatePlayerSlot()
     },
     dead: () => {
+      if (this.removed || this.healthState === 'dead') return
       this.healthState = 'dead'
-      this.remoteContainer.classList.remove('connected')
-      this.remoteContainer.classList.remove('signal-lost')
-      const button = this.remoteContainer.querySelector('.disconnect') as HTMLButtonElement
-      button.innerText = 'scan now...'
-      button.onclick = null
+      this.updatePlayerSlot()
     },
   }
 
