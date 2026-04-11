@@ -27,7 +27,7 @@ const steps = [
     element: '#menuBarsBtn',
     popover: {
       title: 'All other options',
-      description: 'Since you will be using the remote itself most of the time, all other options are inside this menu. Tap on the menu button to continue!',
+      description: 'Since you will be using the remote itself most of the time, all other options are inside this menu.',
     },
   },
   {
@@ -35,6 +35,7 @@ const steps = [
     popover: {
       title: 'Some Options Player 1 only',
       description: "Certain options are only for player 1. If the button is faded, that means that you're not player 1, so you don't have access to use that button.",
+      onPopoverRender: () => window.remote.GUI.openMenu(),
     },
   },
   {
