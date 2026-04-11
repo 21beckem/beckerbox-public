@@ -12,6 +12,7 @@ export default class Player {
   private heartbeat: Heartbeat | null = null
   private removed = false
   private avatarSrc: string | null = null
+  private lastHomeBtnState = 0
 
   constructor(slot: number, conn: any, parent: any) {
     this.slot = slot
@@ -121,6 +122,14 @@ export default class Player {
       if (data.type === 'hbr') return
 
       this.pointer.newPacket(data)
+      if (data.Home && !this.lastHomeBtnState) {
+        this.parent.homeBtnClick()
+      }
+      this.lastHomeBtnState = data.Home
+      
+      // don't send home button presses to the actual console
+      data.Home = 0
+
       data.PointX = this.pointer.AnalogX
       data.PointY = this.pointer.AnalogY
       window.electron?.sendPacket(this.slot, data)

@@ -5,14 +5,16 @@ export default class Pointer {
   private pos = { x: 0, y: 0 }
   private hoveredElements: HTMLElement[] = []
   private div: HTMLDivElement
+  private pointersContainer: HTMLElement
 
   constructor(slot: number, playerManager: any) {
     this.slot = slot
     this.playerManager = playerManager
+    this.pointersContainer = document.getElementById('pointers-container') as HTMLElement
     this.div = document.createElement('div')
     this.div.setAttribute('class', `P${slot + 1} pointer`)
     this.div.innerHTML = '<div class="pointer-inner"></div>'
-    document.body.appendChild(this.div)
+    this.pointersContainer.appendChild(this.div)
     this.center()
 
     this.playerManager.pointerClicks[slot] = false
@@ -26,9 +28,6 @@ export default class Pointer {
   private bBtnClick() {
     this.playerManager.bBtnClick()
   }
-  private homeBtnClick() {
-    this.playerManager.homeBtnClick()
-  }
 
   newPacket(data: any) {
     this.move(-data.Gyroscope_Yaw, -data.Gyroscope_Pitch)
@@ -36,7 +35,6 @@ export default class Pointer {
 
     if (data.A === 1 && this.states.A === 0) this.clickAtPointer()
     if (data.B === 1 && this.states.B === 0) this.bBtnClick()
-    if (data.Home === 1 && this.states.Home === 0) this.homeBtnClick()
 
 
     this.states = data

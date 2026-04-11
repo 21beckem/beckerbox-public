@@ -11,7 +11,7 @@
  *
  * Nothing is ever added/removed from the DOM — only transforms & opacity change.
  */
-import { createSignal, onMount } from 'solid-js';
+import { createEffect, createSignal, onMount } from 'solid-js';
 import TicketWrapper from './TicketWrapper';
 import SideButton from './SideButton';
 import { GearIcon, LibraryIcon } from './Icons';
@@ -22,6 +22,7 @@ import GameLibraryView from '../views/GameLibraryView';
 const [isOpen, setIsOpen] = createSignal(false);
 // 'main' | 'settings' | 'library'
 const [activeView, setActiveView] = createSignal('main');
+export const [blackBackdrop, setBlackBackdrop] = createSignal(true);
 
 export const goBack = () => setActiveView('main');
 export const setOpen = (open) => {
@@ -33,7 +34,14 @@ export const setOpen = (open) => {
   setIsOpen(open);
 };
 
+
+
 export default function Overlay(props) {
+
+  createEffect(() => {
+    const open = isOpen();
+    window.electron.setPause(open);
+  });
 
   onMount(() => {
     const t = setTimeout(() => setIsOpen(true), 1000);
@@ -46,6 +54,8 @@ export default function Overlay(props) {
     setActiveView(prev => prev === view ? 'main' : view);
   };
 
+  const openCloseDuration = 500; // ms, should match CSS transition duration
+
 
   return (
     /* ── Backdrop ──────────────────────────────────────────────────────── */
@@ -53,10 +63,8 @@ export default function Overlay(props) {
       style={`
         position: fixed; inset: 0;
         display: flex; align-items: center; justify-content: center;
-        transition: background-color 700ms ease, backdrop-filter 700ms ease, -webkit-backdrop-filter 700ms ease;
-        background-color: ${isOpen() ? 'rgba(0,0,0,0.40)' : 'rgba(0,0,0,0)'};
-        backdrop-filter: blur(${isOpen() ? '5px' : '0px'});
-        -webkit-backdrop-filter: blur(${isOpen() ? '5px' : '0px'});
+        transition: background-color 700ms ease;
+        background-color: ${blackBackdrop() ? 'black' : (isOpen() ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)')};
       `}
     >
 
@@ -72,7 +80,7 @@ export default function Overlay(props) {
           opacity: ${isOpen() ? 1 : 0};
         `}
       >
-        <TicketWrapper notchSide="both">
+        <TicketWrapper notchSide="both" OverlayOpen={isOpen()}>
           <ConnectionView qrCodeText={props.qrCodeText()} playerSlots={props.playerSlots()} onDisconnectPlayer={props.onDisconnectPlayer} />
         </TicketWrapper>
 
@@ -97,12 +105,12 @@ export default function Overlay(props) {
           width: 44vw;
           height: 80vh;
           z-index: 30;
-          transition: transform 480ms cubic-bezier(0.34, 1.1, 0.64, 1);
+          transition: transform 480ms cubic-bezier(0.34, 1.1, 0.64, 1), opacity 700ms ease;
           transform: translateY(-50%) translateX(${activeView() === 'settings' && isOpen() ? '0px' : 'calc(-100% - 20px)'});
           filter: drop-shadow(6px 0 28px rgba(0,0,0,0.42));
         `}
       >
-        <TicketWrapper notchSide="right">
+        <TicketWrapper notchSide="right" OverlayOpen={isOpen()}>
           <div style="opacity: 0; pointer-events: none; position: absolute; inset: 0;" aria-hidden={activeView() !== 'settings'} />
           <div
             style={`
@@ -131,7 +139,7 @@ export default function Overlay(props) {
           filter: drop-shadow(-6px 0 28px rgba(0,0,0,0.42));
         `}
       >
-        <TicketWrapper notchSide="left">
+        <TicketWrapper notchSide="left" OverlayOpen={isOpen()}>
           <div
             style={`
               position: relative; width: 100%; height: 100%;
@@ -151,6 +159,7 @@ export default function Overlay(props) {
           side="left"
           isActive={activeView() === 'settings'}
           onClick={() => toggleView('settings')}
+          overlayOpen={isOpen()}
         >
           <GearIcon />
         </SideButton>
@@ -162,10 +171,25 @@ export default function Overlay(props) {
           side="right"
           isActive={activeView() === 'library'}
           onClick={() => toggleView('library')}
+          overlayOpen={isOpen()}
         >
           <LibraryIcon />
         </SideButton>
       </div>
+
+      
+      {/* Pointers Container */}
+      <div style={`
+        position: absolute;
+        top: 0;
+        left: 0;
+        bottom: 0;
+        right: 0;
+        z-index: 50;
+        transition: opacity 200ms ease;
+        pointer-events: none;
+        opacity: ${isOpen() ? 1 : 0};
+      `} id="pointers-container"></div>
 
     </div>
   );

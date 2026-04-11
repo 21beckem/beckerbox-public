@@ -5,6 +5,8 @@
 export default function SideButton(props) {
   const isLeft = props.side === 'left';
 
+  const hiddenTrasnform = isLeft ? 'translateX(calc(-100% - 10px))' : 'translateX(calc(100% + 10px))';
+
   return (
     <button
       class="pointer-clickable"
@@ -24,12 +26,13 @@ export default function SideButton(props) {
         color: ${props.isActive ? '#1a6344' : '#2e5e42'};
         cursor: pointer;
         transition: background 200ms ease, transform 150ms ease;
+        transform: ${props.overlayOpen ? 'translateX(0)' : hiddenTrasnform};
         outline: none;
         box-shadow: ${isLeft ? '3px' : '-3px'} 0 16px rgba(0,0,0,0.18);
       `}
       classList={{ hover: false }}
-      onMouseEnter={e => e.currentTarget.style.background = props.isActive ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.42)'}
-      onMouseLeave={e => e.currentTarget.style.background = props.isActive ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.26)'}
+      onMouseEnter={e => e.currentTarget.style.background = props.isActive ? 'rgba(255,255,255,0.82)' : 'rgba(255,255,255,0.68)'}
+      onMouseLeave={e => e.currentTarget.style.background = props.isActive ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.42)'}
     >
       <div style="width: 48px; height: 48px;">
         {props.children}

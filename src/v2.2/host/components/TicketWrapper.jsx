@@ -35,7 +35,14 @@ export default function TicketWrapper(props) {
   });
 
   return (
-    <div style="position: relative; width: 100%; height: 100%; filter: drop-shadow(0 12px 40px rgba(0,0,0,0.35)) drop-shadow(0 2px 8px rgba(0,0,0,0.18));">
+    <div style={`
+      position: relative;
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 12px 40px rgba(0,0,0,0.35)) drop-shadow(0 2px 8px rgba(0,0,0,0.18));
+      transition: opacity 200ms ease;
+      opacity: ${props.OverlayOpen ? 1 : 0};
+    `}>
       <svg aria-hidden="true" style="position: absolute; width: 0; height: 0; overflow: hidden; pointer-events: none;">
         <defs>
           <clipPath id={clipId} clipPathUnits="userSpaceOnUse">

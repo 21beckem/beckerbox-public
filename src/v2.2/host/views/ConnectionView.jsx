@@ -8,7 +8,8 @@ import * as Overlay from '../components/Overlay';
 
 function onStartClick(e) {
   e.currentTarget.style.display = 'none';
-  Overlay.setIsOpen(false);
+  Overlay.setOpen(false);
+  setTimeout(() => Overlay.setBlackBackdrop(false), 1500);
   window.electron.startWii();
 }
 
