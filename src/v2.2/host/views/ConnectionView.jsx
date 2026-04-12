@@ -13,6 +13,13 @@ function onStartClick(e) {
   window.electron.startWii();
 }
 
+function onHomeClick(e) {
+  Overlay.setOpen(false);
+  Overlay.setBlackBackdrop(true);
+  setTimeout(() => Overlay.setBlackBackdrop(false), 1000);
+  window.electron.goHome();
+}
+
 export default function ConnectionView(props) {
   return (
     <div style="display: flex; flex-direction: column; height: 100%; padding: 20px 40px 24px;">
@@ -44,25 +51,54 @@ export default function ConnectionView(props) {
           )}
         </div>
       </div>
-      <button
-        style="
-          display: block;
-          margin: 0 auto 24px;
-          padding: 12px 32px;
-          font-size: 18px;
-          font-weight: 700;
-          color: white;
-          background: #2d9a6b;
-          border: none;
-          border-radius: 20px;
-          cursor: pointer;
-          box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-        "
-        class="pointer-clickable"
-        onClick={onStartClick}
-      >
-        Start
-      </button>
+
+
+      {/* buttons */}
+      <div style={`
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+        gap: 16px;
+      `}>
+        <button
+          style="
+            display: block;
+            margin: 0 auto 24px;
+            padding: 12px 32px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: #2d9a6b;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          "
+          class="pointer-clickable"
+          onClick={onStartClick}
+        >
+          Start
+        </button>
+        <button
+          style="
+            display: block;
+            margin: 0 auto 24px;
+            padding: 12px 32px;
+            font-size: 18px;
+            font-weight: 700;
+            color: white;
+            background: #2d9a6b;
+            border: none;
+            border-radius: 20px;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+          "
+          class="pointer-clickable"
+          onClick={onHomeClick}
+        >
+          Go Home
+        </button>
+      </div>
 
       {/* ── DIVIDER ── */}
       <div style="border-top: 2px dashed rgba(0,0,0,0.10); margin: 0 -8px;" />

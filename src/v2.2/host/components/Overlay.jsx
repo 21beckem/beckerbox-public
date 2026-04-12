@@ -40,7 +40,7 @@ export default function Overlay(props) {
 
   createEffect(() => {
     const open = isOpen();
-    window.electron.setPause(open);
+    window.electron.setPaused(open);
   });
 
   onMount(() => {
