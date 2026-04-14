@@ -5,30 +5,6 @@ import { createSignal } from 'solid-js';
 
 const VIDEO_STEPS = ['Low', 'Med', 'High', 'Ultra'];
 
-function BackButton(props) {
-  return (
-    <button
-      onClick={props.onClick}
-      style="
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 6px 14px 6px 8px;
-        background: rgba(0,0,0,0.06); border: none; border-radius: 10px;
-        cursor: pointer; transition: background 150ms ease;
-        font-family: inherit;
-      "
-      onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.12)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
-    >
-      <span style="
-        width: 22px; height: 22px; border-radius: 50%;
-        background: #cc3333; display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 11px; font-weight: 900; flex-shrink: 0;
-      ">B</span>
-      <span style="font-size: 13px; font-weight: 700; color: #1a6344;">Back</span>
-    </button>
-  );
-}
-
 export default function SettingsView(props) {
   const [videoQuality, setVideoQuality] = createSignal(2);
   const [audioLevel, setAudioLevel] = createSignal(75);

@@ -74,6 +74,52 @@ class PlayerManager {
     this.players[slot] = new Player(slot, conn, this)
     conn.on('close', () => this.removePlayer(slot as number))
   }
+  async addMouseAsFakePlayer() {
+    let callbacks: Record<string, Array<Function>> = {};
+    let isMouseDown = false;
+
+    const listener = (event: MouseEvent) => {
+      if (event.type === 'mousedown') isMouseDown = true;
+      if (event.type === 'mouseup')   isMouseDown = false;
+
+      if (!callbacks['data']) return;
+      callbacks['data'].forEach(c => {
+        if (typeof c === 'function')
+           c({
+            Gyroscope_Yaw: event.movementX * -2,
+            Gyroscope_Pitch: event.movementY * -2,
+            A: isMouseDown ? 1 : 0
+          })
+      })
+    };
+    window.addEventListener('mousemove', listener);
+    window.addEventListener('mousedown', listener);
+    window.addEventListener('mouseup',   listener);
+
+    const conn = {
+      open: true,
+      send: (data: any) => {
+        if (data.type !== 'hb') return;
+        if (!callbacks['data']) return;
+        callbacks['data'].forEach(c => {
+          if (typeof c === 'function') c({type: 'hbr', id: data.id})
+        })
+      },
+      on: (type: string, func: Function) => {
+        if (!callbacks[type]) callbacks[type] = [];
+        callbacks[type].push(func);
+      },
+      off: (type: string, func: Function) => {
+        if (!callbacks[type]) return;
+        callbacks[type] = callbacks[type].filter(c => c !== func);
+      },
+      close: () =>  {
+        debugger;
+      }
+    }
+
+    return this.addNewPhone(conn);
+  }
 
   removePlayer(slot: number) {
     this.players[slot]?.remove()
@@ -125,5 +171,6 @@ class PlayerManager {
 }
 
 const manager = new PlayerManager()
+manager.addMouseAsFakePlayer()
 
 export default manager

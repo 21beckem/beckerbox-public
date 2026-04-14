@@ -18,6 +18,10 @@
     width: 55px;
     height: 55px;
     z-index: 9999999;
+    transition: filter 80ms ease;
+}
+.pointer.hovering {
+    filter: brightness(1.5);
 }
 .P1.pointer div { background-color: #1f8cfa; }
 .P2.pointer div { background-color: #f84a3c; }

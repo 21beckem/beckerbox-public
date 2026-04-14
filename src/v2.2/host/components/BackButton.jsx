@@ -1,13 +1,18 @@
-export function BackButton(props) {
+export default function BackButton(props) {
   return (
     <button
-      class="pointer-clickable"
+      class='pointer-clickable'
       onClick={props.onClick}
       style="
-        display: inline-flex; align-items: center; gap: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 14px;
         padding: 12px 24px 12px 14px;
-        background: rgba(0,0,0,0.06); border: 2px solid rgba(0,0,0,0.1); border-radius: 16px;
-        cursor: pointer; transition: background 150ms ease;
+        background: rgba(0,0,0,0.06);
+        border: 2px solid rgba(0,0,0,0.1);
+        border-radius: 16px;
+        cursor: pointer;
+        transition: all 150ms ease;
         font-family: inherit; font-size: 16px;
       "
       onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.12)'}

@@ -20,35 +20,22 @@ if (window.electron === undefined) {
         startWii: () => {
             a('Start Wii', 'After purchasing BeckerBox, this would launch the Wii Menu\u2122. <p style="font-family: sans-serif; font-size:0.8em;">"Wii" is a registered Nintendo trademark. BeckerBox is not affiliated with or endorsed by Nintendo.</p>');
         },
-        getDiscList: () => {
-            return Promise.resolve([
-                {
-                    name: 'Name of Game Here',
-                    path: ''
-                },
-                {
-                    name: 'Name of Game Here',
-                    path: ''
-                },
-                {
-                    name: 'Name of Game Here',
-                    path: ''
-                },
-                {
-                    name: 'Name of Game Here',
-                    path: ''
-                },
-                {
-                    name: 'You get the idea...',
-                    path: ''
-                }
-            ]);
+        setPaused: (to) => {
+            // do nothing
+        },
+        goHome: () => {
+            // do nothing
         },
         changeDisc: (path) => {
             a('Change Disc', 'After purchasing BeckerBox, this would change the current disc to what you just selected.');
         },
         powerOff: () => {
             a('Power Off', 'After purchasing BeckerBox, this would power off BeckerBox, and any running software.');
+        },
+        gameManager: {
+            getGames: () => {
+                return [];
+            }
         },
         info: {
             getVersions: () => {

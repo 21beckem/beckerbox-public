@@ -10,7 +10,8 @@
  *   - onBack: () => void
  */
 import { createSignal, Show } from 'solid-js';
-import { BackButton } from '../components/BackButton';
+import BackButton from '../components/BackButton';
+import ViewHeader from '../components/ViewHeader';
 
 const VIDEO_STEPS = ['Low', 'Med', 'High', 'Ultra'];
 
@@ -25,13 +26,8 @@ export default function SettingsView(props) {
   return (
     <div style="display: flex; flex-direction: column; height: 100%; padding: 20px 32px 20px;">
 
-      {/* ── HEADER ROW: Back + Title ── */}
-      <div style="display: flex; align-items: center; gap: 16px; padding-bottom: 20px;">
-        <BackButton onClick={props.onBack} />
-        <h1 style="font-size: clamp(28px, 3.5vw, 40px); font-weight: 900; color: #1a6344; letter-spacing: -0.4px; margin: 0;">
-          Settings
-        </h1>
-      </div>
+      
+      <ViewHeader onBack={props.onBack}>Settings</ViewHeader>
 
       {/* ── DIVIDER ── */}
       <div style="border-top: 2px solid rgba(0,0,0,0.1);" />

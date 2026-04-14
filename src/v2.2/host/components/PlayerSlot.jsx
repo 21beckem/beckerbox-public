@@ -51,7 +51,7 @@ export default function PlayerSlot(props) {
           ? (
             <img
               src={props.avatarSrc}
-              alt={props.name}
+              alt=""
               style="width: 100%; height: 100%; object-fit: cover;"
               draggable={false}
             />

@@ -6,6 +6,7 @@ export default class Pointer {
   private hoveredElements: HTMLElement[] = []
   private div: HTMLDivElement
   private pointersContainer: HTMLElement
+  private aBtnIsDown: boolean = false;
 
   constructor(slot: number, playerManager: any) {
     this.slot = slot
@@ -25,6 +26,13 @@ export default class Pointer {
     this.hoveredElements[0]?.click()
     this.playerManager.pointerClicks[this.slot] = false
   }
+  private aBtnDown() {
+    this.aBtnIsDown = true;
+  }
+  private aBtnUp() {
+    if (this.aBtnIsDown) this.clickAtPointer()
+    this.aBtnIsDown = false;
+  }
   private bBtnClick() {
     this.playerManager.bBtnClick()
   }
@@ -33,7 +41,8 @@ export default class Pointer {
     this.move(-data.Gyroscope_Yaw, -data.Gyroscope_Pitch)
     if (data.raw) this.rotateTo(data.raw.Gyroscope_Roll)
 
-    if (data.A === 1 && this.states.A === 0) this.clickAtPointer()
+    if (data.A === 1 && this.states.A === 0) this.aBtnDown()
+    if (data.A === 0 && this.states.A === 1) this.aBtnUp()
     if (data.B === 1 && this.states.B === 0) this.bBtnClick()
 
 
@@ -86,7 +95,6 @@ export default class Pointer {
     document.elementsFromPoint(this.pos.x, this.pos.y).forEach((el) => {
       if (!(el instanceof HTMLElement)) return
       if (!el.classList.contains('pointer-clickable')) return
-      if (el.tagName !== 'BUTTON') return
       if (el.classList.contains('pointer')) return
 
       if (oldElements.includes(el)) {
@@ -94,10 +102,19 @@ export default class Pointer {
       }
 
       this.hoveredElements.push(el)
+      el.dispatchEvent(new MouseEvent('mouseenter'));
       el.classList.add('hover')
     })
 
-    oldElements.forEach((e) => e.classList.remove('hover'))
+    oldElements.forEach((e) => {
+      e.dispatchEvent(new MouseEvent('mouseleave'));
+      e.classList.remove('hover')
+    })
+
+    if (this.hoveredElements.length > 0)
+      this.div.classList.add('hovering')
+    else
+      this.div.classList.remove('hovering');
   }
 
   remove() {

@@ -7,54 +7,30 @@
  *
  * All navigation is via arrow buttons only (no mouse/touch scroll).
  */
-import { createSignal } from 'solid-js';
+import { createSignal, Show } from 'solid-js';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   ChevronUpIcon, ChevronDownIcon,
   GridIcon, CarouselIcon, PlayersIcon
 } from '../components/Icons';
+import ViewHeader from '../components/ViewHeader';
 
 const COVER = 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png';
 
 const GAMES = [
-  { id: 1,  title: 'Super Mario Galaxy',            players: '1–2' },
-  { id: 2,  title: 'Wii Sports Resort',             players: '1–4' },
-  { id: 3,  title: 'Mario Kart Wii',                players: '1–4' },
-  { id: 4,  title: 'The Legend of Zelda: TP',       players: '1'   },
-  { id: 5,  title: 'Super Smash Bros. Brawl',       players: '1–4' },
-  { id: 6,  title: 'New Super Mario Bros. Wii',     players: '1–4' },
-  { id: 7,  title: 'Metroid Prime 3: Corruption',   players: '1'   },
-  { id: 8,  title: 'Donkey Kong Country Returns',   players: '1–2' },
-  { id: 9,  title: 'Kirby\'s Epic Yarn',            players: '1–2' },
-  { id: 10, title: 'Pikmin 2',                      players: '1'   },
-  { id: 11, title: 'Fire Emblem: Radiant Dawn',     players: '1'   },
-  { id: 12, title: 'Xenoblade Chronicles',          players: '1'   },
+  { id: 1,  title: 'Super Mario Galaxy',            players: '' },
+  { id: 2,  title: 'Wii Sports Resort',             players: '' },
+  { id: 3,  title: 'Mario Kart Wii',                players: '' },
+  { id: 4,  title: 'The Legend of Zelda: TP',       players: '' },
+  { id: 5,  title: 'Super Smash Bros. Brawl',       players: '' },
+  { id: 6,  title: 'New Super Mario Bros. Wii',     players: '' },
+  { id: 7,  title: 'Metroid Prime 3: Corruption',   players: '' },
+  { id: 8,  title: 'Donkey Kong Country Returns',   players: '' },
+  { id: 9,  title: 'Kirby\'s Epic Yarn',            players: '' },
+  { id: 10, title: 'Pikmin 2',                      players: '' },
+  { id: 11, title: 'Fire Emblem: Radiant Dawn',     players: '' },
+  { id: 12, title: 'Xenoblade Chronicles',          players: '' },
 ];
-
-// ── Back button (shared) ──────────────────────────────────────────────────
-function BackButton(props) {
-  return (
-    <button
-      onClick={props.onClick}
-      style="
-        display: inline-flex; align-items: center; gap: 8px;
-        padding: 6px 14px 6px 8px;
-        background: rgba(0,0,0,0.06); border: none; border-radius: 10px;
-        cursor: pointer; transition: background 150ms ease;
-        font-family: inherit;
-      "
-      onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.12)'}
-      onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
-    >
-      <span style="
-        width: 22px; height: 22px; border-radius: 50%;
-        background: #cc3333; display: flex; align-items: center; justify-content: center;
-        color: white; font-size: 11px; font-weight: 900; flex-shrink: 0;
-      ">B</span>
-      <span style="font-size: 13px; font-weight: 700; color: #1a6344;">Back</span>
-    </button>
-  );
-}
 
 // ── Arrow nav button ──────────────────────────────────────────────────────
 function NavArrow(props) {
@@ -73,6 +49,7 @@ function NavArrow(props) {
         flex-shrink: 0;
         font-family: inherit;
       `}
+      class='pointer-clickable'
       onMouseEnter={e => { if (!props.disabled) e.currentTarget.style.background = 'rgba(26,99,68,0.22)'; }}
       onMouseLeave={e => { if (!props.disabled) e.currentTarget.style.background = 'rgba(26,99,68,0.12)'; }}
     >
@@ -96,6 +73,7 @@ function GameCard(props) {
         transform: scale(${hovered() ? 1.14 : 1});
         z-index: ${hovered() ? 10 : 1};
       `}
+      class='pointer-clickable'
     >
       {/* Cover — portrait 2:3 ratio */}
       <div style={`
@@ -119,10 +97,13 @@ function GameCard(props) {
           <p style="color: white; font-size: 10px; font-weight: 800; line-height: 1.25; margin: 0 0 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
             {props.title}
           </p>
-          <div style="display: flex; align-items: center; gap: 3px;">
-            <div style="width: 10px; height: 10px; color: rgba(255,255,255,0.7);"><PlayersIcon /></div>
-            <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);">{props.players}</span>
-          </div>
+          
+          <Show when={props.players}>
+            <div style="display: flex; align-items: center; gap: 3px;">
+              <div style="width: 10px; height: 10px; color: rgba(255,255,255,0.7);"><PlayersIcon /></div>
+              <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);">{props.players}</span>
+            </div>
+          </Show>
         </div>
       </div>
 
@@ -171,31 +152,7 @@ export default function GameLibraryView(props) {
   return (
     <div style="display: flex; flex-direction: column; height: 100%; padding: 20px 28px 20px; overflow: hidden;">
 
-      {/* ── HEADER ── */}
-      <div style="display: flex; align-items: center; gap: 10px; padding-bottom: 14px; flex-shrink: 0;">
-        <BackButton onClick={props.onBack} />
-        <h1 style="flex: 1; font-size: clamp(16px, 2vw, 22px); font-weight: 900; color: #1a6344; letter-spacing: -0.4px; margin: 0;">
-          Game Library
-        </h1>
-        {/* View toggle */}
-        <button
-          onClick={toggleView}
-          title={viewMode() === 'carousel' ? 'Switch to grid' : 'Switch to carousel'}
-          style="
-            width: 34px; height: 34px; border: none; border-radius: 8px;
-            background: rgba(26,99,68,0.10); color: #1a6344;
-            display: flex; align-items: center; justify-content: center;
-            cursor: pointer; transition: background 150ms ease; flex-shrink: 0;
-            font-family: inherit;
-          "
-          onMouseEnter={e => e.currentTarget.style.background = 'rgba(26,99,68,0.2)'}
-          onMouseLeave={e => e.currentTarget.style.background = 'rgba(26,99,68,0.10)'}
-        >
-          <div style="width: 18px; height: 18px;">
-            {viewMode() === 'carousel' ? <GridIcon /> : <CarouselIcon />}
-          </div>
-        </button>
-      </div>
+      <ViewHeader onBack={props.onBack}>Game Library</ViewHeader>
 
       {/* ── DIVIDER ── */}
       <div style="border-top: 1px solid rgba(0,0,0,0.07); flex-shrink: 0;" />
