@@ -1,14 +1,3 @@
-.pointer div {
-    pointer-events: none;
-    margin: 0;
-    padding: 0;
-    width: 100%;
-    height: 100%;
-    border-radius: 0 50% 50% 50%;
-    transform: translate(4px, 11px) rotate(38deg);
-    filter: drop-shadow(2px 2px 5px gray);
-    box-shadow: -1px -2px 15px 0px #ffffff6b inset;
-}
 .pointer {
     pointer-events: none;
     position: fixed;
@@ -23,7 +12,28 @@
 .pointer.hovering {
     filter: brightness(1.5);
 }
-.P1.pointer div { background-color: #1f8cfa; }
-.P2.pointer div { background-color: #f84a3c; }
-.P3.pointer div { background-color: #2ea463; }
-.P4.pointer div { background-color: #fbb432; }
+.P1.pointer .pointer-body { background-color: #1f8cfa; }
+.P2.pointer .pointer-body { background-color: #f84a3c; }
+.P3.pointer .pointer-body { background-color: #2ea463; }
+.P4.pointer .pointer-body { background-color: #fbb432; }
+
+.pointer .pointer-body {
+    pointer-events: none;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: 0 50% 50% 50%;
+    transform: translate(4px, 11px) rotate(38deg);
+    filter: drop-shadow(2px 2px 5px gray);
+    box-shadow: -1px -2px 15px 0px #ffffff6b inset;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.pointer .pointer-body .status-icon {
+    flex: 1;
+    text-align: center;
+    transform: rotate(-38deg);
+}

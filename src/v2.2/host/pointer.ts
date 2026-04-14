@@ -7,18 +7,52 @@ export default class Pointer {
   private div: HTMLDivElement
   private pointersContainer: HTMLElement
   private aBtnIsDown: boolean = false;
+  private statusEl: HTMLDivElement;
+  private healthState: 'healthy';
 
   constructor(slot: number, playerManager: any) {
     this.slot = slot
     this.playerManager = playerManager
     this.pointersContainer = document.getElementById('pointers-container') as HTMLElement
-    this.div = document.createElement('div')
-    this.div.setAttribute('class', `P${slot + 1} pointer`)
-    this.div.innerHTML = '<div class="pointer-inner"></div>'
+    let { div, statusEl } = this.createPointerDOM(slot);
+    this.div = div
+    this.statusEl = statusEl
     this.pointersContainer.appendChild(this.div)
     this.center()
 
     this.playerManager.pointerClicks[slot] = false
+  }
+  private createPointerDOM(slot: number): Record<string, HTMLDivElement> {
+    let div = document.createElement('div')
+    div.classList.add(`P${slot + 1}`, 'pointer')
+
+    let pointerBody = document.createElement('div')
+    pointerBody.classList.add('pointer-body')
+    div.appendChild(pointerBody);
+    
+    let statusEl = document.createElement('div')
+    statusEl.classList.add('status-icon')
+    pointerBody.appendChild(statusEl);
+
+    return  { div, statusEl }
+  }
+  health = {
+    healthy: () => {
+      this.healthState = 'healthy'
+      this.setStatus('&check;', 'color: green')
+    },
+    sick: () => {
+      this.healthState = 'sick'
+      this.setStatus('&hellip', '')
+    },
+    dead: () => {
+      this.healthState = 'dead'
+      this.setStatus('&times;', '')
+    },
+  }
+  private setStatus(innerHTML:string, style:string) {
+    this.statusEl.innerHTML = innerHTML
+    this.statusEl.setAttribute('style', style);
   }
 
   private clickAtPointer() {

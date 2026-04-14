@@ -47,16 +47,19 @@ export default class Player {
       if (this.removed || this.healthState === 'healthy') return
       this.healthState = 'healthy'
       this.updatePlayerSlot()
+      this.pointer.health.healthy()
     },
     sick: () => {
       if (this.removed || this.healthState === 'sick') return
       this.healthState = 'sick'
       this.updatePlayerSlot()
+      this.pointer.health.sick()
     },
     dead: () => {
       if (this.removed || this.healthState === 'dead') return
       this.healthState = 'dead'
       this.updatePlayerSlot()
+      this.pointer.health.dead()
     },
   }
 

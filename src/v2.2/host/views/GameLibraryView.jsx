@@ -40,16 +40,20 @@ function NavArrow(props) {
       onClick={props.onClick}
       disabled={props.disabled}
       style={`
-        width: 36px; height: 36px; border-radius: 50%; border: none;
-        display: flex; align-items: center; justify-content: center;
-        background: ${props.disabled ? 'rgba(0,0,0,0.05)' : 'rgba(26,99,68,0.12)'};
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: ${props.disabled ? 'rgba(0,0,0,0.04)' : 'rgba(26,99,68,0.12)'};
         color: ${props.disabled ? '#ccc' : '#1a6344'};
         cursor: ${props.disabled ? 'not-allowed' : 'pointer'};
+        border: ${props.disabled ? 'none' : '2px solid currentColor'};
         transition: background 150ms ease, transform 100ms ease;
         flex-shrink: 0;
         font-family: inherit;
       `}
-      class='pointer-clickable'
+      class='pointer-clickable not-allowed'
       onMouseEnter={e => { if (!props.disabled) e.currentTarget.style.background = 'rgba(26,99,68,0.22)'; }}
       onMouseLeave={e => { if (!props.disabled) e.currentTarget.style.background = 'rgba(26,99,68,0.12)'; }}
     >
@@ -120,10 +124,10 @@ function GameCard(props) {
 // ── Main view ─────────────────────────────────────────────────────────────
 const CAROUSEL_VISIBLE = 3;
 const GRID_COLS        = 3;
-const GRID_ROWS_VISIBLE = 2;
+const GRID_ROWS_VISIBLE = 3;
 
 export default function GameLibraryView(props) {
-  const [viewMode, setViewMode] = createSignal('carousel'); // 'carousel' | 'grid'
+  const [viewMode, setViewMode] = createSignal('grid'); // 'carousel' | 'grid'
   const [carouselIdx, setCarouselIdx] = createSignal(0);
   const [gridRow, setGridRow] = createSignal(0);
 
