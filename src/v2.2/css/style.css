@@ -331,6 +331,6 @@ html:fullscreen #openFullScreenPrompt {
 		--side-panel-background-color: black;
 	}
 	.qr-code {
-		filter: invert() brightness(0.8);
+		filter: invert();
 	}
 }

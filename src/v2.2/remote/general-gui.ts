@@ -55,19 +55,10 @@ export default class GeneralGUI {
     launchedFullScreen = true
   }
 
-  static updateHostCode(code: string, selector: string) {
-    const url = new URL(window.location.href)
-    url.searchParams.set('id', code)
-    window.history.replaceState({ path: url.href }, '', url.href)
+  static setQRCode() {
+    const target = document.querySelector('#joinCode .qr-code')
+    if (!target) return
 
-    this.setQRCode(selector)
-  }
-
-  static setQRCode(selector: string) {
-    const target = document.querySelector(selector)
-    if (!target) {
-      return
-    }
     target.innerHTML = ''
     new window.QRCode(target, {
       text: window.location.href,
@@ -85,5 +76,4 @@ export default class GeneralGUI {
     }
   }
 }
-
 window.GeneralGUI = GeneralGUI

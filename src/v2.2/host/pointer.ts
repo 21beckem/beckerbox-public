@@ -8,7 +8,7 @@ export default class Pointer {
   private pointersContainer: HTMLElement
   private aBtnIsDown: boolean = false;
   private statusEl: HTMLDivElement;
-  private healthState: 'healthy';
+  // private healthState = 'healthy';
 
   constructor(slot: number, playerManager: any) {
     this.slot = slot
@@ -38,15 +38,15 @@ export default class Pointer {
   }
   health = {
     healthy: () => {
-      this.healthState = 'healthy'
+      // this.healthState = 'healthy'
       this.setStatus('&check;', 'color: green')
     },
     sick: () => {
-      this.healthState = 'sick'
+      // this.healthState = 'sick'
       this.setStatus('&hellip', '')
     },
     dead: () => {
-      this.healthState = 'dead'
+      // this.healthState = 'dead'
       this.setStatus('&times;', '')
     },
   }

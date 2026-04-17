@@ -7,11 +7,9 @@ const REFRESH = '<button class="wiiUIbtn" onclick="window.refreshConnection();" 
 const status = {
   connecting: `Connecting to BeckerBox host<br><br>Please wait...<br><br>If this takes more than 10 seconds, please ${REFRESH}`,
   connected: 'Connected!<br><br>Launching remote...',
-  noCodeProvided: 'Looks like no game code was provided!<br><br>Please scan the QR code again.',
   cantconnect: `Sorry, it looks something went wrong while connecting!<br><br>Please ${REFRESH}`,
   disconnected: `Sorry, it looks like you got disconnected!<br><br>Please ${REFRESH}`,
   allSlotsTaken: 'Sorry, it looks like all the player slots have already been taken!',
-  welcome: 'Thanks for playing with BeckerBox',
   error: (err: unknown) => `Oh no! There's been an error.
     <br>
     <div style="font-size: small;">
@@ -74,7 +72,8 @@ class RemoteGui {
         void handler()
       })
     }
-
+    
+    GeneralGUI.setQRCode()
     bindClick('launchFullscreenBtn', () => GeneralGUI.attemptFullscreen())
     bindClick('menuBarsBtn', () => this.openMenu())
     bindClick('changeDiscBtn', () => this.changeDisc())
@@ -136,41 +135,16 @@ class RemoteGui {
     document.documentElement.style.setProperty('--bBtn-top', `${dist}px`)
   }
 
-  private keepSavingSlot(slot: number | null) {
-    if (slot === null || slot === undefined) {
-      localStorage.removeItem('preferredSlot')
-      return
-    }
-
-    setInterval(() => {
-      localStorage.setItem('preferredSlot', JSON.stringify({ slot, timestamp: Date.now() }))
-    }, 1000)
-  }
-
-  getPreferredSlotFromSession() {
-    const raw = localStorage.getItem('preferredSlot')
-    if (!raw) return null
-
-    try {
-      const data = JSON.parse(raw)
-      if (Date.now() - data.timestamp > 60 * 1000) return null
-      return data.slot
-    } catch {
-      return null
-    }
-  }
-
   setSlot(slot: number | null) {
-    this.keepSavingSlot(slot)
     Array.from(byId('lights').children).forEach((child) => child.classList.remove('on'))
-    if (slot !== null) byId('lights').children[slot]?.classList.add('on')
+    if (slot !== null) byId('lights').children[slot-1]?.classList.add('on')
 
     if (slot === null) {
       JSAlert.alert('Looks like all the player slots have already been taken!', 'Oh no...', JSAlert.Icons.Failed)
       return
     }
 
-    if (slot === 0) {
+    if (slot === 1) {
       Array.from(document.querySelectorAll('.player-one-only')).forEach((el) => el.classList.add('enabled'))
     } else {
       Array.from(document.querySelectorAll('.player-one-only')).forEach((el) => el.classList.remove('enabled'))
@@ -306,104 +280,90 @@ class RemoteGui {
 }
 
 export class Remote {
-  private searchParams = new URLSearchParams(window.location.search)
   GUI: RemoteGui
-  peer: any
+  socket: any
   conn: any
   connOpen = false
 
-  constructor(code: string | null) {
+  constructor() {
     this.GUI = new RemoteGui(this)
 
-    if ((code === null && this.searchParams.get('id') === 'dev-env') || code === 'dev-env') {
-      this.GUI.showRemotePage()
-      return
-    }
-
-    this.peer = new window.Peer(null, { host: 'peerjs.beckersuite.com', secure: true })
     this.GUI.setConnectingStatus(status.connecting)
-
-    this.peer.on('open', () => this.connectWithCode(code))
-    this.peer.on('connection', (c: any) => {
-      c.on('open', () => {
-        c.send('Connection to another remote is not allowed at this time.')
-        setTimeout(() => c.close(), 500)
-      })
-    })
+    void this.connect()
   }
 
   destroy() {
     this.connOpen = false
-    this.peer?.destroy?.()
+    this.conn?.disconnect?.()
+    this.socket = null
+    this.conn = null
     this.GUI.setConnectingStatus(status.disconnected)
   }
 
-  async connectWithCode(code: string | null = null) {
+  async connect() {
     this.GUI.setConnectingStatus(status.connecting)
 
-    if (code === false as unknown as string) {
-      this.GUI.setConnectingStatus(status.welcome)
+    const ioFactory = (window as any).io
+    if (typeof ioFactory !== 'function') {
+      this.connOpen = false
+      this.GUI.setConnectingStatus(status.error(new Error('Socket.IO client is not available on window.io')))
       return
     }
 
-    if (!code && !this.searchParams.get('id')) {
-      this.GUI.setConnectingStatus(status.noCodeProvided)
-      return
-    }
+    this.conn?.disconnect?.()
+    this.socket = ioFactory('/', {
+      autoConnect: false,
+      transports: ['websocket'],
+      query: { role: 'remote' },
+    })
+    this.conn = this.socket
 
-    code = code || this.searchParams.get('id')
-    GeneralGUI.setQRCode('#joinCode .qr-code')
-    if (code === 'dev-env') {
-      this.GUI.showRemotePage()
-      return
-    }
-
-    this.conn = this.peer.connect(code)
-
-    this.conn.on('open', () => {
+    this.conn.on('connect', () => {
       this.connOpen = true
       this.GUI.closeMenu()
       this.GUI.showRemotePage()
       this.startSendingPackets()
       setTimeout(() => this.getGames(), 100)
-      history.replaceState(null, '', `?id=${code}`)
+    })
+
+    this.conn.on('slotAssigned', (slot: number | null) => {
+      if (slot === null) {
+        window.allSlotsTaken = true
+        this.GUI.setConnectingStatus(status.allSlotsTaken)
+      } else {
+        this.GUI.setSlot(slot)
+      }
     })
 
     this.conn.on('data', (data: any) => {
       this.connOpen = true
 
-      if (data.slot !== undefined) {
-        this.GUI.setSlot(data.slot)
-        if (data.slot === null) {
-          window.allSlotsTaken = true
-          this.conn.close()
-        }
-      } else if (data.poweredOff === true) {
+      if (data.poweredOff === true) {
         this.destroy()
         this.GUI.alertPowerOff()
       } else if (data.type === 'hb') {
-        this.conn.send({ type: 'hbr', id: data.id })
-      } else if (typeof data.newHostCode === 'string') {
-        GeneralGUI.updateHostCode(data.newHostCode, '#joinCode .qr-code')
-      } else if (data.getPreferredSlot === true) {
-        this.conn.send({ result: this.GUI.getPreferredSlotFromSession() })
+        this.conn.emit('data', { type: 'hbr', id: data.id })
       }
     })
 
-    this.conn.on('disconnected', () => {
+    this.conn.on('disconnect', () => {
       this.connOpen = false
       if (window.allSlotsTaken === true) this.GUI.setConnectingStatus(status.allSlotsTaken)
       else this.GUI.setConnectingStatus(status.disconnected)
     })
 
-    this.conn.on('error', (err: Error) => {
+    const handleSocketError = (err: Error) => {
       this.connOpen = false
       if (err.message?.toLowerCase().includes('connection is not open')) {
         window.refreshConnection()
         return
       }
       this.GUI.setConnectingStatus(status.error(err))
-    })
+    }
+
+    this.conn.on('connect_error', handleSocketError)
+    this.conn.on('error', handleSocketError)
+    this.conn.connect()
   }
 
   private handleMotion(e: DeviceMotionEvent) {
@@ -419,8 +379,8 @@ export class Remote {
   }
 
   private sendPacketNow() {
-    if (this.peer && !this.peer.disconnected && this.conn && this.conn.open) {
-      this.conn.send(PACKET)
+    if (this.conn && this.conn.connected) {
+      this.conn.emit('packet', PACKET)
     }
   }
 
@@ -453,7 +413,7 @@ export class Remote {
         resolve(data.result)
       }
 
-      this.conn.send(toSend)
+      this.conn.emit('data', toSend)
       this.conn.on('data', handleData)
 
       setTimeout(() => {
@@ -465,7 +425,7 @@ export class Remote {
   }
 
   changeDisc(gameId: string) {
-    this.conn.send({ menuAction: 'changeDisc', gameId })
+    this.conn.emit('data', { menuAction: 'changeDisc', gameId })
   }
 
   powerOff() {
