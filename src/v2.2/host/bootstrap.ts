@@ -1,4 +1,3 @@
-import PlayerManager from './player-manager'
 import scaleScreenToFit from './scale-screen'
 
 window.DEMOMODE = !window.location.host.startsWith('localhost') && (!window.electron || window.electron.FAKE)
@@ -16,8 +15,9 @@ window.electron?.info.getVersions().then((versions: any) => {
 
 scaleScreenToFit()
 window.electron?.init()
-PlayerManager.init()
-window.PlayerManager = PlayerManager
+window.PlayerManager.onAllEvents(({event, data}: {event: string, data: any}) => {
+  console.log('PlayerManager event:', event, data)
+});
 
 window.startWii = (startBtn: HTMLButtonElement) => {
   window.electron.startWii()

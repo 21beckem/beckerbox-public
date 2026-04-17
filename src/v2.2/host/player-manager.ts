@@ -2,6 +2,8 @@ import Player from './player'
 import * as Overlay from './components/Overlay'
 
 class PlayerManager {
+  constructor() { this.init() }
+  
   private backendActivatedPlayers = [false, false, false, false]
   players: Array<Player | null> = [null, null, null, null]
   pointerClicks = [false, false, false, false]
@@ -25,7 +27,6 @@ class PlayerManager {
   }
 
   init() {
-    window.electron?.init()
 
     this.peer = new window.Peer(null, {
       host: 'peerjs.beckersuite.com',
@@ -75,6 +76,7 @@ class PlayerManager {
     conn.on('close', () => this.removePlayer(slot as number))
   }
   async addMouseAsFakePlayer() {
+    return;
     let callbacks: Record<string, Array<Function>> = {};
     let isMouseDown = false;
 
