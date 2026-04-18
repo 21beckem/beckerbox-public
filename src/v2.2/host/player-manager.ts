@@ -1,5 +1,6 @@
 import { Player } from './player'
 import * as Overlay from './components/Overlay'
+import { setQrCodeText } from './host-state'
 
 export class PlayerManager_template {
   pointerClicks = [false, false, false, false]
@@ -13,7 +14,12 @@ export class PlayerManager_template {
 
   private setHandlers() {
     window.PlayerManager.onEvent('state', (state: any) => {
-      if (!state || !state.players) return
+      if (!state) return
+      if (state.connectLink) {
+        setQrCodeText(state.connectLink)
+      }
+
+      if (!state.players) return
       if (!Array.isArray(state.players)) return
       if (state.players.length !== 4) return
       state.players.forEach((p: any, index: number) => {

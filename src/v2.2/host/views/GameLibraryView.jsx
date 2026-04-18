@@ -17,20 +17,11 @@ import ViewHeader from '../components/ViewHeader';
 
 const COVER = 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png';
 
-const GAMES = [
-  { id: 1,  title: 'Super Mario Galaxy',            players: '' },
-  { id: 2,  title: 'Wii Sports Resort',             players: '' },
-  { id: 3,  title: 'Mario Kart Wii',                players: '' },
-  { id: 4,  title: 'The Legend of Zelda: TP',       players: '' },
-  { id: 5,  title: 'Super Smash Bros. Brawl',       players: '' },
-  { id: 6,  title: 'New Super Mario Bros. Wii',     players: '' },
-  { id: 7,  title: 'Metroid Prime 3: Corruption',   players: '' },
-  { id: 8,  title: 'Donkey Kong Country Returns',   players: '' },
-  { id: 9,  title: 'Kirby\'s Epic Yarn',            players: '' },
-  { id: 10, title: 'Pikmin 2',                      players: '' },
-  { id: 11, title: 'Fire Emblem: Radiant Dawn',     players: '' },
-  { id: 12, title: 'Xenoblade Chronicles',          players: '' },
-];
+const [ getGames, setGames ] = createSignal([]);
+
+window.electron?.gameManager.getGames().then(games => {
+  setGames(games);
+});
 
 // ── Arrow nav button ──────────────────────────────────────────────────────
 function NavArrow(props) {
@@ -88,7 +79,7 @@ function GameCard(props) {
           : '0 4px 12px rgba(0,0,0,0.22)'};
         transition: box-shadow 220ms ease;
       `}>
-        <img src={COVER} alt={props.title} style="width: 100%; height: 100%; object-fit: cover; display: block;" draggable={false} />
+        <img src={props.imageUrl} alt={props.title} style="width: 100%; height: 100%; object-fit: cover; display: block;" draggable={false} />
       </div>
 
       {/* Hover metadata overlay */}
@@ -131,17 +122,17 @@ export default function GameLibraryView(props) {
   const [carouselIdx, setCarouselIdx] = createSignal(0);
   const [gridRow, setGridRow] = createSignal(0);
 
-  const totalRows = Math.ceil(GAMES.length / GRID_COLS);
+  const totalRows = Math.ceil(getGames().length / GRID_COLS);
 
   // Carousel
   const canLeft  = () => carouselIdx() > 0;
-  const canRight = () => carouselIdx() + CAROUSEL_VISIBLE < GAMES.length;
-  const visibleCarousel = () => GAMES.slice(carouselIdx(), carouselIdx() + CAROUSEL_VISIBLE);
+  const canRight = () => carouselIdx() + CAROUSEL_VISIBLE < getGames().length;
+  const visibleCarousel = () => getGames().slice(carouselIdx(), carouselIdx() + CAROUSEL_VISIBLE);
 
   // Grid
   const canUp   = () => gridRow() > 0;
   const canDown = () => gridRow() + GRID_ROWS_VISIBLE < totalRows;
-  const visibleGrid = () => GAMES.slice(gridRow() * GRID_COLS, (gridRow() + GRID_ROWS_VISIBLE) * GRID_COLS);
+  const visibleGrid = () => getGames().slice(gridRow() * GRID_COLS, (gridRow() + GRID_ROWS_VISIBLE) * GRID_COLS);
 
   const toggleView = () => {
     setViewMode(m => m === 'carousel' ? 'grid' : 'carousel');
@@ -172,13 +163,6 @@ export default function GameLibraryView(props) {
             <ChevronLeftIcon />
           </NavArrow>
 
-          {/* Cards area */}
-          <div style="flex: 1; display: flex; justify-content: center; align-items: flex-end; gap: 18px; padding: 24px 0;">
-            {visibleCarousel().map(game => (
-              <GameCard key={game.id} title={game.title} players={game.players} cardW={CARD_W_CAROUSEL} />
-            ))}
-          </div>
-
           {/* Right arrow */}
           <NavArrow onClick={() => setCarouselIdx(i => i + 1)} disabled={!canRight()}>
             <ChevronRightIcon />
@@ -187,7 +171,7 @@ export default function GameLibraryView(props) {
 
         {/* Pagination dots */}
         <div style="display: flex; justify-content: center; gap: 5px; padding-top: 10px;">
-          {Array.from({ length: GAMES.length - CAROUSEL_VISIBLE + 1 }).map((_, i) => (
+          {Array.from({ length: getGames().length - CAROUSEL_VISIBLE + 1 }).map((_, i) => (
             <div style={`
               width: ${i === carouselIdx() ? 18 : 6}px; height: 6px; border-radius: 3px;
               background: ${i === carouselIdx() ? '#2d9a6b' : '#ddd'};
@@ -220,7 +204,7 @@ export default function GameLibraryView(props) {
             gap: 18px;
           `}>
             {visibleGrid().map(game => (
-              <GameCard key={game.id} title={game.title} players={game.players} cardW={CARD_W_GRID} />
+              <GameCard key={game.id} title={game.title} players={game.players} cardW={CARD_W_GRID} imageUrl={game.images?.cover.uri} />
             ))}
           </div>
         </div>

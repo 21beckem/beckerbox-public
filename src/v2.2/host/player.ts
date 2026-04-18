@@ -32,6 +32,7 @@ export class Player {
       this.ui.dead()
       this.pointer?.remove()
       this.pointer = null
+      this.ui.dead()
     } else {
       this.pointer = new Pointer(this.slot, this.parent)
       this.ui.healthy()
@@ -106,10 +107,6 @@ export class Player {
       this.parent.homeBtnClick()
     }
     this.lastHomeBtnState = data.Home
-
-    data.PointX = this.pointer?.AnalogX
-    data.PointY = this.pointer?.AnalogY
-    window.electron?.sendPacket(this.slot, data)
   }
 
   remove() {
@@ -144,7 +141,6 @@ class Pointer {
     this.div = div
     this.statusEl = statusEl
     this.pointersContainer?.appendChild(this.div)
-    this.center()
 
     this.playerManager.pointerClicks[slot] = false
   }
@@ -165,7 +161,7 @@ class Pointer {
   health = {
     healthy: () => {
       // this.healthState = 'healthy'
-      this.setStatus('&check;', 'color: green')
+      this.setStatus('', '')
     },
     sick: () => {
       // this.healthState = 'sick'
@@ -198,8 +194,7 @@ class Pointer {
   }
 
   newPacket(data: any) {
-    console.log(data.A)
-    this.move(-data.Gyroscope_Yaw, -data.Gyroscope_Pitch)
+    this.moveTo(data.PointX, data.PointY)
     if (data.raw) this.rotateTo(data.raw.Gyroscope_Roll)
 
     if (data.A === 1 && this.states.A === 0) this.aBtnDown()
@@ -210,43 +205,18 @@ class Pointer {
     this.states = data
   }
 
-  private center() {
-    this.moveTo(document.documentElement.clientWidth / 2, document.documentElement.clientHeight / 2)
-  }
-
-  private moveTo(x: number, y: number) {
-    this.pos = { x, y }
-    this.div.style.left = `${x}px`
-    this.div.style.top = `${y}px`
-    this.handleMoveEvents()
-  }
-
   private rotateTo(angle: number) {
     this.div.style.transform = `rotate(${angle}deg)`
   }
 
-  private move(x: number, y: number) {
-    const speedFactor = 0.00025
-    const xSpeed = document.documentElement.clientWidth * speedFactor
-    const ySpeed = document.documentElement.clientHeight * speedFactor
-
-    this.pos = { x: this.pos.x + x * xSpeed, y: this.pos.y + y * ySpeed }
+  private moveTo(x: number, y: number) {
     this.pos = {
-      x: Math.min(Math.max(this.pos.x, 0), document.documentElement.clientWidth),
-      y: Math.min(Math.max(this.pos.y, 0), document.documentElement.clientHeight),
+      x: x / 255 * document.documentElement.clientWidth,
+      y: y / 255 * document.documentElement.clientHeight
     }
-
     this.div.style.left = `${this.pos.x}px`
     this.div.style.top = `${this.pos.y}px`
     this.handleMoveEvents()
-  }
-
-  get AnalogX() {
-    return (this.pos.x / document.documentElement.clientWidth) * 255
-  }
-
-  get AnalogY() {
-    return (this.pos.y / document.documentElement.clientHeight) * 255
   }
 
   private handleMoveEvents() {
