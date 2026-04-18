@@ -1,65 +1,98 @@
-import Pointer from './pointer'
-import Heartbeat from './heartbeat'
 import { setPlayerSlot } from './host-state'
+import { PlayerManager_template } from './player-manager'
 
-export default class Player {
+interface PlayerState {
+  slot: number
+  connected: boolean
+  health: 'healthy' | 'sick' | 'dead'
+  avatarSrc: string | null
+}
+
+export class Player {
   readonly slot: number
-  readonly conn: any
-  private parent: any
-  private alertedAboutPowerOff = false
+  private parent: PlayerManager_template
+  private pointer: Pointer | null = null
   private healthState: 'healthy' | 'sick' | 'dead' = 'dead'
-  private pointer: Pointer
-  private heartbeat: Heartbeat | null = null
-  private removed = false
+  private _connected = false
   private avatarSrc: string | null = null
   private lastHomeBtnState = 0
 
-  constructor(slot: number, conn: any, parent: any) {
+  constructor(slot: number, parent: PlayerManager_template) {
     this.slot = slot
-    this.conn = conn
     this.parent = parent
-    this.pointer = new Pointer(this.slot, parent)
-    this.avatarSrc = this.generateAvatarSrc()
-    this.initConn()
+    this.pointer = null
     this.ui.healthy()
   }
 
-  private generateAvatarSrc() {
-    return `https://api.dicebear.com/8.x/micah/svg?seed=player-${this.slot}-${Date.now()}&backgroundColor=b6e3f4&radius=50`
+  set connected(value: boolean) {
+    if (!!value === this._connected) return
+    this._connected = !!value
+
+    if (!this._connected) {
+      this.ui.dead()
+      this.pointer?.remove()
+      this.pointer = null
+    } else {
+      this.pointer = new Pointer(this.slot, this.parent)
+      this.ui.healthy()
+    }
+  }
+  get connected() {
+    return this._connected
+  }
+  
+  setState(state: Partial<PlayerState>) {
+    let somethingChanged = false
+
+    if (state.connected !== undefined && state.connected !== this._connected) {
+      this.connected = state.connected
+      somethingChanged = true
+    }
+    if (state.avatarSrc !== undefined && state.avatarSrc !== this.avatarSrc) {
+      this.avatarSrc = state.avatarSrc
+      somethingChanged = true
+    }
+    if (state.health !== undefined && state.health !== this.healthState) {
+      this.healthState = state.health
+      somethingChanged = true
+    }
+
+    if (somethingChanged) {
+      this.updatePlayerSlot()
+    }
   }
 
   get avatar() {
     return this.avatarSrc
   }
   private updatePlayerSlot() {
-    if (this.removed) return
     setPlayerSlot(this.slot, {
       slot: this.slot,
-      connected: this.removed ? false : true,
+      connected: this.connected,
       health: this.healthState,
-      avatarSrc: this.removed ? null : this.avatarSrc,
+      avatarSrc: this.avatarSrc,
     })
   }
 
 
   private ui = {
     healthy: () => {
-      if (this.removed || this.healthState === 'healthy') return
+      if (!this.connected || this.healthState === 'healthy') return
       this.healthState = 'healthy'
       this.updatePlayerSlot()
-      this.pointer.health.healthy()
+      this.pointer?.health.healthy()
     },
     sick: () => {
-      if (this.removed || this.healthState === 'sick') return
+      if (!this.connected || this.healthState === 'sick') return
       this.healthState = 'sick'
       this.updatePlayerSlot()
-      this.pointer.health.sick()
+      this.pointer?.health.sick()
     },
     dead: () => {
-      if (this.removed || this.healthState === 'dead') return
+      if (!this.connected || this.healthState === 'dead') return
       this.healthState = 'dead'
       this.updatePlayerSlot()
-      this.pointer.health.dead()
+      this.pointer?.health.dead()
     },
   }
 
@@ -67,102 +100,185 @@ export default class Player {
     return this.healthState
   }
 
-  private setupHeartbeat() {
-    this.heartbeat = new Heartbeat(this.conn)
-    this.heartbeat.start()
-
-    this.heartbeat.on('healthy', () => this.ui.healthy())
-    this.heartbeat.on('sick', () => this.ui.sick())
-    this.heartbeat.on('dead', () => this.parent.removePlayer(this.slot))
-  }
-
-  private initConn() {
-    if (this.conn.open) {
-      this.conn.send({ slot: this.slot })
-      this.setupHeartbeat()
-    } else {
-      this.conn.on('open', () => {
-        this.conn.send({ slot: this.slot })
-        this.setupHeartbeat()
-      })
+  newPacket(data: any) {
+    this.pointer?.newPacket(data)
+    if (data.Home && !this.lastHomeBtnState) {
+      this.parent.homeBtnClick()
     }
+    this.lastHomeBtnState = data.Home
 
-    this.conn.on('data', (data: any) => {
-      if (data.menuAction) {
-        switch (data.menuAction) {
-          case 'gameManager.getGames': {
-            const omitDataUris = (result: any[]) =>
-              result?.map((game) => ({
-                ...game,
-                images: {
-                  ...game.images,
-                  cover: { ...game.images.cover, uri: '' },
-                  disc: { ...game.images.disc, uri: '' },
-                },
-              }))
-
-            window.electron?.gameManager.getGames().then((result: any[]) => this.conn.send({ result: omitDataUris(result) }))
-            break
-          }
-          case 'changeDisc':
-            window.electron?.changeDisc(data.gameId)
-            break
-          case 'powerOff':
-            window.electron?.powerOff().then((result: boolean) => {
-              this.conn.send({ result })
-              if (result) {
-                this.alertedAboutPowerOff = true
-                this.parent.alertPowerOff()
-              }
-            })
-            break
-          default:
-            break
-        }
-        return
-      }
-
-      if (data.type === 'hbr') return
-
-      this.pointer.newPacket(data)
-      if (data.Home && !this.lastHomeBtnState) {
-        this.parent.homeBtnClick()
-      }
-      this.lastHomeBtnState = data.Home
-      
-      // don't send home button presses to the actual console
-      data.Home = 0
-
-      data.PointX = this.pointer.AnalogX
-      data.PointY = this.pointer.AnalogY
-      window.electron?.sendPacket(this.slot, data)
-    })
+    data.PointX = this.pointer?.AnalogX
+    data.PointY = this.pointer?.AnalogY
+    window.electron?.sendPacket(this.slot, data)
   }
 
   remove() {
-    this.disconnect()
     this.ui.dead()
   }
+}
 
-  alertPowerOff() {
-    if (this.alertedAboutPowerOff) return
-    this.alertedAboutPowerOff = true
-    this.conn.send({ poweredOff: true })
+
+
+
+
+
+
+
+class Pointer {
+  private slot: number
+  private playerManager: PlayerManager_template
+  private states: Record<string, number> = {}
+  private pos = { x: 0, y: 0 }
+  private hoveredElements: HTMLElement[] = []
+  private div: HTMLDivElement
+  private pointersContainer: HTMLElement
+  private aBtnIsDown: boolean = false;
+  private statusEl: HTMLDivElement;
+  // private healthState = 'healthy';
+
+  constructor(slot: number, playerManager: PlayerManager_template) {
+    this.slot = slot
+    this.playerManager = playerManager
+    this.pointersContainer = document.getElementById('pointers-container') as HTMLElement
+    let { div, statusEl } = this.createPointerDOM(slot);
+    this.div = div
+    this.statusEl = statusEl
+    this.pointersContainer?.appendChild(this.div)
+    this.center()
+
+    this.playerManager.pointerClicks[slot] = false
+  }
+  private createPointerDOM(slot: number): Record<string, HTMLDivElement> {
+    let div = document.createElement('div')
+    div.classList.add(`P${slot + 1}`, 'pointer')
+
+    let pointerBody = document.createElement('div')
+    pointerBody.classList.add('pointer-body')
+    div.appendChild(pointerBody);
+    
+    let statusEl = document.createElement('div')
+    statusEl.classList.add('status-icon')
+    pointerBody.appendChild(statusEl);
+
+    return  { div, statusEl }
+  }
+  health = {
+    healthy: () => {
+      // this.healthState = 'healthy'
+      this.setStatus('&check;', 'color: green')
+    },
+    sick: () => {
+      // this.healthState = 'sick'
+      this.setStatus('&hellip', '')
+    },
+    dead: () => {
+      // this.healthState = 'dead'
+      this.setStatus('&times;', '')
+    },
+  }
+  private setStatus(innerHTML:string, style:string) {
+    this.statusEl.innerHTML = innerHTML
+    this.statusEl.setAttribute('style', style);
   }
 
-  alertNewCode(code: string) {
-    this.conn.send({ newHostCode: code })
+  private clickAtPointer() {
+    this.playerManager.pointerClicks[this.slot] = true
+    this.hoveredElements[0]?.click()
+    this.playerManager.pointerClicks[this.slot] = false
+  }
+  private aBtnDown() {
+    this.aBtnIsDown = true;
+  }
+  private aBtnUp() {
+    if (this.aBtnIsDown) this.clickAtPointer()
+    this.aBtnIsDown = false;
+  }
+  private bBtnClick() {
+    this.playerManager.bBtnClick()
   }
 
-  private disconnect() {
-    if (this.removed) return
-    this.removed = true
+  newPacket(data: any) {
+    console.log(data.A)
+    this.move(-data.Gyroscope_Yaw, -data.Gyroscope_Pitch)
+    if (data.raw) this.rotateTo(data.raw.Gyroscope_Roll)
 
-    this.heartbeat?.destroy()
-    this.heartbeat = null
+    if (data.A === 1 && this.states.A === 0) this.aBtnDown()
+    if (data.A === 0 && this.states.A === 1) this.aBtnUp()
+    if (data.B === 1 && this.states.B === 0) this.bBtnClick()
 
-    this.conn.close()
-    this.pointer.remove()
-    this.parent.removePlayer(this.slot)
+
+    this.states = data
+  }
+
+  private center() {
+    this.moveTo(document.documentElement.clientWidth / 2, document.documentElement.clientHeight / 2)
+  }
+
+  private moveTo(x: number, y: number) {
+    this.pos = { x, y }
+    this.div.style.left = `${x}px`
+    this.div.style.top = `${y}px`
+    this.handleMoveEvents()
+  }
+
+  private rotateTo(angle: number) {
+    this.div.style.transform = `rotate(${angle}deg)`
+  }
+
+  private move(x: number, y: number) {
+    const speedFactor = 0.00025
+    const xSpeed = document.documentElement.clientWidth * speedFactor
+    const ySpeed = document.documentElement.clientHeight * speedFactor
+
+    this.pos = { x: this.pos.x + x * xSpeed, y: this.pos.y + y * ySpeed }
+    this.pos = {
+      x: Math.min(Math.max(this.pos.x, 0), document.documentElement.clientWidth),
+      y: Math.min(Math.max(this.pos.y, 0), document.documentElement.clientHeight),
+    }
+
+    this.div.style.left = `${this.pos.x}px`
+    this.div.style.top = `${this.pos.y}px`
+    this.handleMoveEvents()
+  }
+
+  get AnalogX() {
+    return (this.pos.x / document.documentElement.clientWidth) * 255
+  }
+
+  get AnalogY() {
+    return (this.pos.y / document.documentElement.clientHeight) * 255
+  }
+
+  private handleMoveEvents() {
+    const oldElements = [...this.hoveredElements]
+    this.hoveredElements = []
+
+    document.elementsFromPoint(this.pos.x, this.pos.y).forEach((el) => {
+      if (!(el instanceof HTMLElement)) return
+      if (!el.classList.contains('pointer-clickable')) return
+      if (el.classList.contains('pointer')) return
+
+      if (oldElements.includes(el)) {
+        oldElements.splice(oldElements.indexOf(el), 1)
+      }
+
+      this.hoveredElements.push(el)
+      el.dispatchEvent(new MouseEvent('mouseenter'));
+      el.classList.add('hover')
+    })
+
+    oldElements.forEach((e) => {
+      e.dispatchEvent(new MouseEvent('mouseleave'));
+      e.classList.remove('hover')
+    })
+
+    if (this.hoveredElements.length > 0)
+      this.div.classList.add('hovering')
+    else
+      this.div.classList.remove('hovering');
+  }
+
+  remove() {
+    this.div.remove()
   }
 }
