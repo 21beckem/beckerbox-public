@@ -72,7 +72,7 @@ class RemoteGui {
         void handler()
       })
     }
-    
+
     GeneralGUI.setQRCode()
     bindClick('launchFullscreenBtn', () => GeneralGUI.attemptFullscreen())
     bindClick('menuBarsBtn', () => this.openMenu())
@@ -137,14 +137,14 @@ class RemoteGui {
 
   setSlot(slot: number | null) {
     Array.from(byId('lights').children).forEach((child) => child.classList.remove('on'))
-    if (slot !== null) byId('lights').children[slot-1]?.classList.add('on')
+    if (slot !== null) byId('lights').children[slot]?.classList.add('on')
 
     if (slot === null) {
       JSAlert.alert('Looks like all the player slots have already been taken!', 'Oh no...', JSAlert.Icons.Failed)
       return
     }
 
-    if (slot === 1) {
+    if (slot === 0) {
       Array.from(document.querySelectorAll('.player-one-only')).forEach((el) => el.classList.add('enabled'))
     } else {
       Array.from(document.querySelectorAll('.player-one-only')).forEach((el) => el.classList.remove('enabled'))
@@ -327,6 +327,7 @@ export class Remote {
     })
 
     this.conn.on('slotAssigned', (slot: number | null) => {
+      this.connOpen = true
       if (slot === null) {
         window.allSlotsTaken = true
         this.GUI.setConnectingStatus(status.allSlotsTaken)
@@ -335,13 +336,15 @@ export class Remote {
       }
     })
 
+    this.conn.on('powerOff', () => {
+      this.destroy()
+      this.GUI.alertPowerOff()
+    })
+
     this.conn.on('data', (data: any) => {
       this.connOpen = true
 
-      if (data.poweredOff === true) {
-        this.destroy()
-        this.GUI.alertPowerOff()
-      } else if (data.type === 'hb') {
+      if (data.type === 'hb') {
         this.conn.emit('data', { type: 'hbr', id: data.id })
       }
     })

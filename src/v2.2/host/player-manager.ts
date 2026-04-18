@@ -16,7 +16,6 @@ export class PlayerManager_template {
       if (!state || !state.players) return
       if (!Array.isArray(state.players)) return
       if (state.players.length !== 4) return
-
       state.players.forEach((p: any, index: number) => {
         if (p && this.players[index]) {
           this.players[index].setState(p);
