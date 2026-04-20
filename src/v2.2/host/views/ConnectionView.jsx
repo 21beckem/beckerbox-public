@@ -6,11 +6,14 @@ import PlayerSlot from '../components/PlayerSlot';
 import { For } from 'solid-js';
 import * as Overlay from '../components/Overlay';
 
-function onStartClick(e) {
+async function onStartClick(e) {
   e.currentTarget.style.display = 'none';
   Overlay.setOpen(false);
+  await Promise.race([
+    window.electron.startWii(),
+    new Promise(resolve => setTimeout(resolve, 3000)) // after 3s, hide the overlay even if the Wii hasn't started yet
+  ]);
   setTimeout(() => Overlay.setBlackBackdrop(false), 1500);
-  window.electron.startWii();
 }
 
 function onHomeClick(e) {
