@@ -80,7 +80,6 @@ class RemoteGui {
     bindClick('changeLayoutBtn', () => this.changeLayout())
     bindClick('handDominanceBtn', () => this.toggleHandDominance())
     bindClick('moreOptionsBtn', () => this.showMoreOptions())
-    bindClick('connectBluetoothBtn', () => this.remote.Blue.promptToConnect())
     bindClick('PowerOffBtn', () => this.powerOff())
 
     this.setBposition()
@@ -292,9 +291,22 @@ class BluetoothConnection {
     this.remote = remote
     this.buttonElement = document.getElementById('connectBluetoothBtn')
     this.status.setDisconnected()
+
+    this.buttonElement?.addEventListener('click', () => this.btnPress())
+  }
+  private async btnPress() {
+    if (this.currentStatus === 'connected') {
+      const confirmed = await JSAlert.confirm('You are already connected via Bluetooth. Do you want to disconnect?', 'Disconnect Bluetooth', JSAlert.Icons.Warning)
+      if (!confirmed) return
+      this.conn?.disconnect?.()
+      this.conn = null
+      this.status.setDisconnected()
+    } else {
+      await this.promptToConnect()
+    }
   }
 
-  async promptToConnect() {
+  private async promptToConnect() {
     if (!navigator.bluetooth) {
       JSAlert.alert('Bluetooth is not supported on this device.', 'Not Supported', JSAlert.Icons.Failed)
       return
@@ -340,6 +352,10 @@ class BluetoothConnection {
       const device = await navigator.bluetooth.requestDevice({
         filters: [{ services: [SERVICE_UUID] }]
       });
+      device.addEventListener("gattserverdisconnected", () => {
+        this.conn = null
+        this.status.setDisconnected()
+      });
       const server  = await device.gatt.connect();
       const service = await server.getPrimaryService(SERVICE_UUID);
       this.conn = await service.getCharacteristic(CHAR_UUID);
@@ -368,7 +384,7 @@ class BluetoothConnection {
 
   private async sendHandshake() {
     if (!this.conn) return
-    const handshakePacket = { connectMeToSlot: this.remote.slot }
+    const handshakePacket = { connectMeToSlot: this.remote.slot, packetTemplate: PACKET }
     await this.conn.writeValueWithoutResponse(new TextEncoder().encode(
       JSON.stringify(handshakePacket)
     ))
@@ -381,7 +397,14 @@ class BluetoothConnection {
     this.sending = true
 
     await this.conn.writeValueWithoutResponse(
-      new TextEncoder().encode(JSON.stringify(packet))
+      new TextEncoder().encode(JSON.stringify(
+        Object.values(packet)
+          .map(v => {
+            if (typeof v === 'boolean') return v ? 1 : 0
+            if (typeof v === 'number') return Math.round(v * 100) / 100
+            return v
+          })
+      ))
     )
     this.sending = false
   }
