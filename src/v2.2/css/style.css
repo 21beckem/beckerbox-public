@@ -304,13 +304,25 @@ html:fullscreen #openFullScreenPrompt {
     }
 }
 
-.player-one-only {
+.player-one-only,
+.menu-btn.disabled {
 	pointer-events: none;
 	opacity: 0.2;
 }
 .player-one-only.enabled {
 	pointer-events: all;
 	opacity: 1;
+}
+.pulse-animation {
+	animation: pulse 2s infinite;
+}
+@keyframes pulse {
+	0%, 100% {
+		opacity: 1;
+	}
+	70% {
+		opacity: 0.5;
+	}
 }
 
 

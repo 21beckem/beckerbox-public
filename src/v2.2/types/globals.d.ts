@@ -22,6 +22,10 @@ declare global {
     dataLayer?: unknown[]
   }
 
+  interface Navigator {
+    bluetooth?: any
+  }
+
   interface Document {
     mozCancelFullScreen?: () => Promise<void>
     webkitCancelFullScreen?: () => Promise<void>

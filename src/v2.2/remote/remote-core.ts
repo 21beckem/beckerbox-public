@@ -80,6 +80,7 @@ class RemoteGui {
     bindClick('changeLayoutBtn', () => this.changeLayout())
     bindClick('handDominanceBtn', () => this.toggleHandDominance())
     bindClick('moreOptionsBtn', () => this.showMoreOptions())
+    bindClick('connectBluetoothBtn', () => this.remote.Blue.promptToConnect())
     bindClick('PowerOffBtn', () => this.powerOff())
 
     this.setBposition()
@@ -279,14 +280,128 @@ class RemoteGui {
   }
 }
 
+
+
+
+
+class BluetoothConnection {
+  private conn: any = null
+  private remote: Remote
+  private buttonElement: HTMLElement | null = null
+  constructor(remote: Remote) {
+    this.remote = remote
+    this.buttonElement = document.getElementById('connectBluetoothBtn')
+    this.status.setDisconnected()
+  }
+
+  async promptToConnect() {
+    if (!navigator.bluetooth) {
+      JSAlert.alert('Bluetooth is not supported on this device.', 'Not Supported', JSAlert.Icons.Failed)
+      return
+    }
+    const DEVICE_NAME = 'FAKE_NAME'
+    if (!(await JSAlert.confirm(`After clicking OK, click on the device named "${DEVICE_NAME}", then click "Connect"`, `Click on ${DEVICE_NAME}`, JSAlert.Icons.Info))) {
+      return
+    }
+    this.initConnection();
+  }
+
+  private currentStatus = 'disconnected'
+  private status = {
+    setConnecting: () => {
+      this.currentStatus = 'connecting'
+      if (!this.buttonElement) return
+      this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b" style="color: blue;" ></i> Bluetooth Connecting...`
+      this.buttonElement.style.pointerEvents = 'none'
+      this.buttonElement.classList.add('pulse-animation')
+    },
+    setConnected: () => {
+      this.currentStatus = 'connected'
+      if (!this.buttonElement) return
+      this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b" style="color: green;"></i> Bluetooth Connected`
+      this.buttonElement.style.pointerEvents = 'all'
+      this.buttonElement.classList.remove('pulse-animation')
+    },
+    setDisconnected: () => {
+      this.currentStatus = 'disconnected'
+      if (!this.buttonElement) return
+      this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b"></i> Connect via Bluetooth`
+      this.buttonElement.style.pointerEvents = 'all'
+      this.buttonElement.classList.remove('pulse-animation')
+    }
+  }
+
+  private async initConnection() {
+    this.status.setConnecting()
+    try {
+
+      const SERVICE_UUID = "a07498ca-ad5b-474e-940d-16f1fbe7e8cd";
+      const CHAR_UUID    = "51ff12bb-3ed8-46e5-b4f9-d64e2fec021b";
+      const device = await navigator.bluetooth.requestDevice({
+        filters: [{ services: [SERVICE_UUID] }]
+      });
+      const server  = await device.gatt.connect();
+      const service = await server.getPrimaryService(SERVICE_UUID);
+      this.conn = await service.getCharacteristic(CHAR_UUID);
+
+      console.log('Connected to Bluetooth device:', device.name);
+      console.log('Characteristic:', this.conn);
+      
+    } catch (error) {
+      console.error('Bluetooth connection failed:', error);
+      JSAlert.alert('Bluetooth connection failed. Please try again.', 'Connection Failed', JSAlert.Icons.Failed)
+      this.status.setDisconnected()
+      return
+    }
+
+    try {
+      await this.sendHandshake()
+    } catch (error) {
+      console.error('Failed to send handshake over Bluetooth:', error)
+      JSAlert.alert('Failed to communicate with the BeckerBox over Bluetooth. Please try again.', 'Communication Failed', JSAlert.Icons.Failed)
+      this.status.setDisconnected()
+      return
+    }
+
+    this.status.setConnected()
+  }
+
+  private async sendHandshake() {
+    if (!this.conn) return
+    const handshakePacket = { connectMeToSlot: this.remote.slot }
+    await this.conn.writeValueWithoutResponse(new TextEncoder().encode(
+      JSON.stringify(handshakePacket)
+    ))
+  }
+
+  private sending: boolean = false
+  async sendPacket(packet: any) {
+    if (this.currentStatus !== 'connected' || !this.conn) return
+    if (this.sending) return
+    this.sending = true
+
+    await this.conn.writeValueWithoutResponse(
+      new TextEncoder().encode(JSON.stringify(packet))
+    )
+    this.sending = false
+  }
+}
+
+
+
+
+
 export class Remote {
   GUI: RemoteGui
+  Blue: BluetoothConnection
   socket: any
   conn: any
   connOpen = false
+  slot: number | null = null
 
   constructor() {
     this.GUI = new RemoteGui(this)
+    this.Blue = new BluetoothConnection(this)
 
     this.GUI.setConnectingStatus(status.connecting)
     void this.connect()
@@ -328,6 +443,7 @@ export class Remote {
 
     this.conn.on('slotAssigned', (slot: number | null) => {
       this.connOpen = true
+      this.slot = slot
       if (slot === null) {
         window.allSlotsTaken = true
         this.GUI.setConnectingStatus(status.allSlotsTaken)
@@ -384,6 +500,9 @@ export class Remote {
   private sendPacketNow() {
     if (this.conn && this.conn.connected) {
       this.conn.emit('packet', PACKET)
+    }
+    if (this.Blue) {
+      this.Blue.sendPacket(PACKET)
     }
   }
 
