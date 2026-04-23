@@ -20,6 +20,7 @@ declare global {
     openGameMenu: () => Promise<void>
     PlayerManager?: any
     dataLayer?: unknown[]
+    inAndroidApp?: boolean
   }
 
   interface Navigator {

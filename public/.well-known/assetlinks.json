@@ -1,0 +1,15 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.beckersuite.box",
+      "sha256_cert_fingerprints": [
+        "96:96:5D:E8:CA96:96:5D:E8:CA:3F:9E:E9:74:AA:B6:6E:96:7D:90:CD:CC:99:72:90:9E:54:28:28:B0:32:65:16:AD:60:E0:07:3F:9E:E9:74:AA:B6:6E:96:7D:90:CD:CC:99:72:90:9E:54:28:28:B0:32:65:16:AD:60:E0:07"
+      ]
+    }
+  }
+]
+

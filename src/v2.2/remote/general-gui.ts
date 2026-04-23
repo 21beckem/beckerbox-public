@@ -6,7 +6,7 @@ const onMobile = window.matchMedia('(any-pointer: coarse)').matches
 const searchParams = new URLSearchParams(window.location.search)
 
 export function initializeGeneralGUIState() {
-  if (!onMobile || searchParams.get('id') === 'dev-env') {
+  if (!window.inAndroidApp || !onMobile || searchParams.get('id') === 'dev-env') {
     document.documentElement.classList.add('mobile')
     const openPrompt = byId('openFullScreenPrompt')
     if (openPrompt) {
