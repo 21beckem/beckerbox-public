@@ -293,7 +293,7 @@ class BluetoothConnection {
     this.status.setDisconnected()
 
     if (BLE.isAvailable) this.status.setDisconnected()
-    else this.status.setConnecting()
+    else this.status.setUnavailable()
 
     this.buttonElement?.addEventListener('click', () => this.btnPress())
   }
@@ -318,28 +318,45 @@ class BluetoothConnection {
 
   private currentStatus = 'disconnected'
   private status = {
+    setUnavailable: () => {
+      this.currentStatus = 'unavailable'
+      if (!this.buttonElement) return
+      this.buttonElement.style.display = 'none'
+    },
     setConnecting: () => {
+      if (BLE.isAvailable === false)
+        return this.status.setUnavailable()
+      
       this.currentStatus = 'connecting'
       if (!this.buttonElement) return
       this.remote.conn?.emit('setInputMode', 'socket')
       this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b" style="color: blue;" ></i> Bluetooth Connecting...`
       this.buttonElement.style.pointerEvents = 'none'
+      this.buttonElement.style.display = 'unset'
       this.buttonElement.classList.add('pulse-animation')
     },
     setConnected: () => {
+      if (BLE.isAvailable === false)
+        return this.status.setUnavailable()
+      
       this.currentStatus = 'connected'
       if (!this.buttonElement) return
       this.remote.conn?.emit('setInputMode', 'bluetooth')
       this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b" style="color: green;"></i> Bluetooth Connected`
       this.buttonElement.style.pointerEvents = 'all'
+      this.buttonElement.style.display = 'unset'
       this.buttonElement.classList.remove('pulse-animation')
     },
     setDisconnected: () => {
+      if (BLE.isAvailable === false)
+        return this.status.setUnavailable()
+
       this.currentStatus = 'disconnected'
       if (!this.buttonElement) return
       this.remote.conn?.emit('setInputMode', 'socket')
       this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b"></i> Connect via Bluetooth`
       this.buttonElement.style.pointerEvents = 'all'
+      this.buttonElement.style.display = 'unset'
       this.buttonElement.classList.remove('pulse-animation')
     }
   }
