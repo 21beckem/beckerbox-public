@@ -11,7 +11,7 @@ declare global {
     mobileConsole: any
     electron?: any
     remote?: any
-    refreshConnection: (code?: string | null, force?: boolean) => void
+    refreshConnection: (force?: boolean) => void
     disconnectRemote: () => void
     allSlotsTaken?: boolean
     DEMOMODE?: boolean
@@ -20,6 +20,16 @@ declare global {
     openGameMenu: () => Promise<void>
     PlayerManager?: any
     dataLayer?: unknown[]
+    inAndroidApp?: boolean,
+    AndroidBle?: any,
+
+    __bleOnConnected?: (id: string) => void
+    __bleOnDisconnected?: (id: string) => void
+    __bleOnError?: (msg: string) => void
+  }
+
+  interface Navigator {
+    bluetooth?: any
   }
 
   interface Document {

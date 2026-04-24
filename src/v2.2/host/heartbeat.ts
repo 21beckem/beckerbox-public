@@ -55,8 +55,8 @@ export default class Heartbeat {
         }
       }
 
-      this.conn.send({ type: 'hb', id: randomId })
       this.conn.on('data', handleData)
+      this.conn.send({ type: 'hb', id: randomId })
 
       setTimeout(() => {
         if (gotData) return

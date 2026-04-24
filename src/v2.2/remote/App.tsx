@@ -1,7 +1,7 @@
 import { onMount, type Component } from 'solid-js'
 import { initializeGeneralGUIState } from './general-gui'
 
-const icon = (name: string, style?: any) => <i class={`fa-solid ${name}`} style={style}></i>
+const icon = (name: string, style?: any, base: string = 'fa-solid') => <i class={`${base} ${name}`} style={style}></i>
 
 const LayoutOne: Component = () => (
   <remote class="layout-1">
@@ -174,7 +174,7 @@ const App: Component = () => {
             </div>
             <div class="title">BeckerBox<br />Remote</div>
             <hr />
-            <div class="menu-btn" id="reconnectBtn" onClick={() => window.refreshConnection(null, true)}>
+            <div class="menu-btn" id="reconnectBtn" onClick={() => window.refreshConnection(true)}>
               {icon('fa-link')} Reconnect
             </div>
             <div class="menu-btn" id="disconnectBtn" onClick={() => window.disconnectRemote()}>
@@ -187,6 +187,8 @@ const App: Component = () => {
             <div class="menu-btn" id="handDominanceBtn"></div>
             <div class="menu-btn" id="moreOptionsBtn">
               {icon('fa-gears')} More Options
+            </div>
+            <div class="menu-btn" id="connectBluetoothBtn">
             </div>
             <div id="joinCode">
               <div class="text">Join Code</div>

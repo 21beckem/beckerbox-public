@@ -1,0 +1,227 @@
+/**
+ * GameLibraryView
+ *
+ * Two view modes toggled by a button in the top-right:
+ *   • Carousel – horizontal row, left/right arrow buttons (no mouse scroll)
+ *   • Grid     – 3-column grid, up/down arrow buttons
+ *
+ * All navigation is via arrow buttons only (no mouse/touch scroll).
+ */
+import { createSignal, Show } from 'solid-js';
+import {
+  ChevronLeftIcon, ChevronRightIcon,
+  ChevronUpIcon, ChevronDownIcon,
+  GridIcon, CarouselIcon, PlayersIcon
+} from '../components/Icons';
+import ViewHeader from '../components/ViewHeader';
+
+const COVER = 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png';
+
+const [ getGames, setGames ] = createSignal([]);
+
+window.electron?.gameManager.getGames().then(games => {
+  setGames(games);
+});
+
+// ── Arrow nav button ──────────────────────────────────────────────────────
+function NavArrow(props) {
+  // props: onClick, disabled, children (icon)
+  return (
+    <button
+      onClick={props.onClick}
+      disabled={props.disabled}
+      style={`
+        width: 56px; height: 56px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: ${props.disabled ? 'rgba(0,0,0,0.04)' : 'rgba(26,99,68,0.12)'};
+        color: ${props.disabled ? '#ccc' : '#1a6344'};
+        cursor: ${props.disabled ? 'not-allowed' : 'pointer'};
+        border: ${props.disabled ? 'none' : '2px solid currentColor'};
+        transition: background 150ms ease, transform 100ms ease;
+        flex-shrink: 0;
+        font-family: inherit;
+      `}
+      class='pointer-clickable not-allowed'
+      onMouseEnter={e => { if (!props.disabled) e.currentTarget.style.background = 'rgba(26,99,68,0.22)'; }}
+      onMouseLeave={e => { if (!props.disabled) e.currentTarget.style.background = 'rgba(26,99,68,0.12)'; }}
+    >
+      <div style="width: 18px; height: 18px;">{props.children}</div>
+    </button>
+  );
+}
+
+// ── GameCard ──────────────────────────────────────────────────────────────
+function GameCard(props) {
+  const [hovered, setHovered] = createSignal(false);
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={`
+        position: relative; flex-shrink: 0;
+        width: ${props.cardW}px;
+        cursor: pointer;
+        transition: transform 220ms cubic-bezier(0.34,1.3,0.64,1), z-index 0ms;
+        transform: scale(${hovered() ? 1.14 : 1});
+        z-index: ${hovered() ? 10 : 1};
+      `}
+      class='pointer-clickable'
+    >
+      {/* Cover — portrait 2:3 ratio */}
+      <div style={`
+        width: ${props.cardW}px; height: ${Math.round(props.cardW * 1.48)}px;
+        border-radius: 10px; overflow: hidden;
+        box-shadow: ${hovered()
+          ? '0 12px 30px rgba(0,0,0,0.45), 0 4px 10px rgba(0,0,0,0.3)'
+          : '0 4px 12px rgba(0,0,0,0.22)'};
+        transition: box-shadow 220ms ease;
+      `}>
+        <img src={props.imageUrl} alt={props.title} style="width: 100%; height: 100%; object-fit: cover; display: block;" draggable={false} />
+      </div>
+
+      {/* Hover metadata overlay */}
+      <div style={`
+        position: absolute; inset: 0; border-radius: 10px; overflow: hidden; pointer-events: none;
+        opacity: ${hovered() ? 1 : 0}; transition: opacity 180ms ease;
+      `}>
+        <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);" />
+        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 7px;">
+          <p style="color: white; font-size: 10px; font-weight: 800; line-height: 1.25; margin: 0 0 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+            {props.title}
+          </p>
+          
+          <Show when={props.players}>
+            <div style="display: flex; align-items: center; gap: 3px;">
+              <div style="width: 10px; height: 10px; color: rgba(255,255,255,0.7);"><PlayersIcon /></div>
+              <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);">{props.players}</span>
+            </div>
+          </Show>
+        </div>
+      </div>
+
+      {/* Selection ring */}
+      <div style={`
+        position: absolute; inset: 0; border-radius: 10px;
+        box-shadow: 0 0 0 2px #2d9a6b, 0 0 0 3px rgba(255,255,255,0.6);
+        pointer-events: none; opacity: ${hovered() ? 1 : 0}; transition: opacity 180ms ease;
+      `} />
+    </div>
+  );
+}
+
+// ── Main view ─────────────────────────────────────────────────────────────
+const CAROUSEL_VISIBLE = 3;
+const GRID_COLS        = 3;
+const GRID_ROWS_VISIBLE = 3;
+
+export default function GameLibraryView(props) {
+  const [viewMode, setViewMode] = createSignal('grid'); // 'carousel' | 'grid'
+  const [carouselIdx, setCarouselIdx] = createSignal(0);
+  const [gridRow, setGridRow] = createSignal(0);
+
+  const totalRows = Math.ceil(getGames().length / GRID_COLS);
+
+  // Carousel
+  const canLeft  = () => carouselIdx() > 0;
+  const canRight = () => carouselIdx() + CAROUSEL_VISIBLE < getGames().length;
+  const visibleCarousel = () => getGames().slice(carouselIdx(), carouselIdx() + CAROUSEL_VISIBLE);
+
+  // Grid
+  const canUp   = () => gridRow() > 0;
+  const canDown = () => gridRow() + GRID_ROWS_VISIBLE < totalRows;
+  const visibleGrid = () => getGames().slice(gridRow() * GRID_COLS, (gridRow() + GRID_ROWS_VISIBLE) * GRID_COLS);
+
+  const toggleView = () => {
+    setViewMode(m => m === 'carousel' ? 'grid' : 'carousel');
+    setCarouselIdx(0);
+    setGridRow(0);
+  };
+
+  // Card dimensions — fixed px so they're always portrait and look sharp
+  const CARD_W_CAROUSEL = 112;
+  const CARD_W_GRID     = 108;
+
+  return (
+    <div style="display: flex; flex-direction: column; height: 100%; padding: 20px 28px 20px; overflow: hidden;">
+
+      <ViewHeader onBack={props.onBack}>Game Library</ViewHeader>
+
+      {/* ── DIVIDER ── */}
+      <div style="border-top: 1px solid rgba(0,0,0,0.07); flex-shrink: 0;" />
+
+      {/* ══ CAROUSEL MODE ══════════════════════════════════════════════════ */}
+      <div style={`
+        flex: 1; display: ${viewMode() === 'carousel' ? 'flex' : 'none'};
+        flex-direction: column; justify-content: center; overflow: hidden;
+      `}>
+        <div style="display: flex; align-items: center; gap: 10px;">
+          {/* Left arrow */}
+          <NavArrow onClick={() => setCarouselIdx(i => i - 1)} disabled={!canLeft()}>
+            <ChevronLeftIcon />
+          </NavArrow>
+
+          {/* Right arrow */}
+          <NavArrow onClick={() => setCarouselIdx(i => i + 1)} disabled={!canRight()}>
+            <ChevronRightIcon />
+          </NavArrow>
+        </div>
+
+        {/* Pagination dots */}
+        <div style="display: flex; justify-content: center; gap: 5px; padding-top: 10px;">
+          {Array.from({ length: getGames().length - CAROUSEL_VISIBLE + 1 }).map((_, i) => (
+            <div style={`
+              width: ${i === carouselIdx() ? 18 : 6}px; height: 6px; border-radius: 3px;
+              background: ${i === carouselIdx() ? '#2d9a6b' : '#ddd'};
+              transition: width 200ms ease, background 200ms ease;
+              cursor: pointer;
+            `}
+              onClick={() => setCarouselIdx(i)}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* ══ GRID MODE ══════════════════════════════════════════════════════ */}
+      <div style={`
+        flex: 1; display: ${viewMode() === 'grid' ? 'flex' : 'none'};
+        flex-direction: column; overflow: hidden;
+      `}>
+        {/* Up arrow */}
+        <div style="display: flex; justify-content: center; padding: 10px 0 6px; flex-shrink: 0;">
+          <NavArrow onClick={() => setGridRow(r => r - 1)} disabled={!canUp()}>
+            <ChevronUpIcon />
+          </NavArrow>
+        </div>
+
+        {/* Grid of cards */}
+        <div style="flex: 1; display: flex; align-items: center; justify-content: center;">
+          <div style={`
+            display: grid;
+            grid-template-columns: repeat(${GRID_COLS}, ${CARD_W_GRID}px);
+            gap: 18px;
+          `}>
+            {visibleGrid().map(game => (
+              <GameCard key={game.id} title={game.title} players={game.players} cardW={CARD_W_GRID} imageUrl={game.images?.cover.uri} />
+            ))}
+          </div>
+        </div>
+
+        {/* Down arrow */}
+        <div style="display: flex; justify-content: center; padding: 6px 0 10px; flex-shrink: 0;">
+          <NavArrow onClick={() => setGridRow(r => r + 1)} disabled={!canDown()}>
+            <ChevronDownIcon />
+          </NavArrow>
+        </div>
+
+        {/* Row indicator */}
+        <div style="text-align: center; font-size: 10px; font-weight: 600; color: #bbb; padding-bottom: 4px;">
+          {gridRow() + 1}–{Math.min(gridRow() + GRID_ROWS_VISIBLE, totalRows)} of {totalRows} rows
+        </div>
+      </div>
+
+    </div>
+  );
+}

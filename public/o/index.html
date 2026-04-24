@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Opening BeckerBox...</title>
+    <style>
+div {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    margin-top: 20vh;
+    display: none;
+}
+    </style>
+</head>
+<body>
+    <div id="loadingMsg">
+        <h2>Opening BeckerBox...</h2>
+        If you are not redirected automatically, please click <a id="redirectLink" href="#">here</a>.
+    </div>
+    <div id="noUrlMsg">
+        <h2>No Game URL provided.</h2>
+        Please scan the QR code from the BeckerBox app again.
+    </div>
+    <script>
+const raw = new URLSearchParams(window.location.search).toString();
+const ip = decodeURIComponent(raw).trim().replaceAll('https://', '').replaceAll('http://', '');
+if (ip) {
+    document.getElementById('loadingMsg').style.display = 'block';
+    document.getElementById('redirectLink').href = 'http://' + ip;
+    window.location.href = 'http://' + ip;
+} else {
+    document.getElementById('noUrlMsg').style.display = 'block';
+}
+    </script>
+</body>
+</html>

@@ -7,14 +7,14 @@ export function bootstrapRemote() {
 
   window.remote = null
 
-  window.refreshConnection = (code: string | null = null, force = true) => {
+  window.refreshConnection = (force = true) => {
     if (force) {
       window.location.reload()
       return
     }
 
     window.remote?.destroy()
-    window.remote = new Remote(code)
+    window.remote = new Remote()
   }
 
   window.disconnectRemote = () => {
@@ -22,6 +22,6 @@ export function bootstrapRemote() {
     window.remote = null
   }
 
-  window.refreshConnection(null, false)
+  window.refreshConnection(false)
   startBeckerboxTour()
 }
