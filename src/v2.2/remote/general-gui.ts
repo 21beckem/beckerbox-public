@@ -6,7 +6,7 @@ const onMobile = window.matchMedia('(any-pointer: coarse)').matches
 const searchParams = new URLSearchParams(window.location.search)
 
 export function initializeGeneralGUIState() {
-  if (!window.inAndroidApp || !onMobile || searchParams.get('id') === 'dev-env') {
+  if (window.inAndroidApp || !onMobile || searchParams.get('id') === 'dev-env') {
     document.documentElement.classList.add('mobile')
     const openPrompt = byId('openFullScreenPrompt')
     if (openPrompt) {
@@ -30,19 +30,26 @@ export default class GeneralGUI {
 
     noSleep.enable()
 
-    const elem = document.documentElement
-    if (typeof elem.requestFullscreen === 'function') await elem.requestFullscreen()
-    else if (typeof elem.mozRequestFullScreen === 'function') await elem.mozRequestFullScreen()
-    else if (typeof elem.webkitRequestFullscreen === 'function') await elem.webkitRequestFullscreen()
-    else if (typeof elem.webkitEnterFullscreen === 'function') await elem.webkitEnterFullscreen()
-    else if (typeof elem.msRequestFullscreen === 'function') await elem.msRequestFullscreen()
-    else if (typeof elem.oRequestFullscreen === 'function') await elem.oRequestFullscreen()
-    else byId('openFullScreenPrompt')?.style.setProperty('display', 'none')
+    try {
+      const elem = document.documentElement
+      if (typeof elem.requestFullscreen === 'function') await elem.requestFullscreen()
+      else if (typeof elem.mozRequestFullScreen === 'function') await elem.mozRequestFullScreen()
+      else if (typeof elem.webkitRequestFullscreen === 'function') await elem.webkitRequestFullscreen()
+      else if (typeof elem.webkitEnterFullscreen === 'function') await elem.webkitEnterFullscreen()
+      else if (typeof elem.msRequestFullscreen === 'function') await elem.msRequestFullscreen()
+      else if (typeof elem.oRequestFullscreen === 'function') await elem.oRequestFullscreen()
+      else byId('openFullScreenPrompt')?.style.setProperty('display', 'none')
+    } catch {
+      // Fullscreen API is not supported on android app, but not needed
+      console.warn('Fullscreen API is not supported or permission was denied.')
+      const openPrompt = byId('openFullScreenPrompt')
+      if (openPrompt) openPrompt.style.display = 'none'
+    }
 
     try {
       await screen.orientation.lock('portrait')
     } catch {
-      // Screen orientation lock is not supported on every browser.
+      console.warn('Screen orientation lock failed or is not supported.')
     }
 
     window.scrollTo(0, 0)

@@ -115,6 +115,7 @@ const steps = [
 driver.setSteps(steps)
 
 export async function startBeckerboxTour(force = false) {
+  return
   if (!force && localStorage.getItem(TOUR_STORAGE_KEY)) return
 
   await GeneralGUI.waitForFullscreenLaunch()

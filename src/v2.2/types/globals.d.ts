@@ -20,7 +20,12 @@ declare global {
     openGameMenu: () => Promise<void>
     PlayerManager?: any
     dataLayer?: unknown[]
-    inAndroidApp?: boolean
+    inAndroidApp?: boolean,
+    AndroidBle?: any,
+
+    __bleOnConnected?: (id: string) => void
+    __bleOnDisconnected?: (id: string) => void
+    __bleOnError?: (msg: string) => void
   }
 
   interface Navigator {

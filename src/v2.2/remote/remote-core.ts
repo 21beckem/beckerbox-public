@@ -1,5 +1,6 @@
 import GeneralGUI from './general-gui'
 import { startBeckerboxTour } from './tutorial'
+import BLE from './ble-bridge'
 
 const JSAlert = window.JSAlert
 const REFRESH = '<button class="wiiUIbtn" onclick="window.refreshConnection();" style="font-size: inherit; border-radius: 17px;">Refresh</button>'
@@ -284,7 +285,6 @@ class RemoteGui {
 
 
 class BluetoothConnection {
-  private conn: any = null
   private remote: Remote
   private buttonElement: HTMLElement | null = null
   constructor(remote: Remote) {
@@ -292,14 +292,16 @@ class BluetoothConnection {
     this.buttonElement = document.getElementById('connectBluetoothBtn')
     this.status.setDisconnected()
 
+    if (BLE.isAvailable) this.status.setDisconnected()
+    else this.status.setConnecting()
+
     this.buttonElement?.addEventListener('click', () => this.btnPress())
   }
   private async btnPress() {
     if (this.currentStatus === 'connected') {
       const confirmed = await JSAlert.confirm('You are already connected via Bluetooth. Do you want to disconnect?', 'Disconnect Bluetooth', JSAlert.Icons.Warning)
       if (!confirmed) return
-      this.conn?.disconnect?.()
-      this.conn = null
+      BLE.disconnect()
       this.status.setDisconnected()
     } else {
       await this.promptToConnect()
@@ -307,12 +309,8 @@ class BluetoothConnection {
   }
 
   private async promptToConnect() {
-    if (!navigator.bluetooth) {
+    if (!BLE.isAvailable) {
       JSAlert.alert('Bluetooth is not supported on this device.', 'Not Supported', JSAlert.Icons.Failed)
-      return
-    }
-    const DEVICE_NAME = 'FAKE_NAME'
-    if (!(await JSAlert.confirm(`After clicking OK, click on the device named "${DEVICE_NAME}", then click "Connect"`, `Click on ${DEVICE_NAME}`, JSAlert.Icons.Info))) {
       return
     }
     this.initConnection();
@@ -323,6 +321,7 @@ class BluetoothConnection {
     setConnecting: () => {
       this.currentStatus = 'connecting'
       if (!this.buttonElement) return
+      this.remote.conn?.emit('setInputMode', 'socket')
       this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b" style="color: blue;" ></i> Bluetooth Connecting...`
       this.buttonElement.style.pointerEvents = 'none'
       this.buttonElement.classList.add('pulse-animation')
@@ -330,6 +329,7 @@ class BluetoothConnection {
     setConnected: () => {
       this.currentStatus = 'connected'
       if (!this.buttonElement) return
+      this.remote.conn?.emit('setInputMode', 'bluetooth')
       this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b" style="color: green;"></i> Bluetooth Connected`
       this.buttonElement.style.pointerEvents = 'all'
       this.buttonElement.classList.remove('pulse-animation')
@@ -337,6 +337,7 @@ class BluetoothConnection {
     setDisconnected: () => {
       this.currentStatus = 'disconnected'
       if (!this.buttonElement) return
+      this.remote.conn?.emit('setInputMode', 'socket')
       this.buttonElement.innerHTML = `<i class="fa-brands fa-bluetooth-b"></i> Connect via Bluetooth`
       this.buttonElement.style.pointerEvents = 'all'
       this.buttonElement.classList.remove('pulse-animation')
@@ -347,31 +348,43 @@ class BluetoothConnection {
     this.status.setConnecting()
     try {
 
-      const SERVICE_UUID = "a07498ca-ad5b-474e-940d-16f1fbe7e8cd";
-      const CHAR_UUID    = "51ff12bb-3ed8-46e5-b4f9-d64e2fec021b";
-      const device = await navigator.bluetooth.requestDevice({
-        filters: [{ services: [SERVICE_UUID] }]
-      });
-      device.addEventListener("gattserverdisconnected", () => {
-        this.conn = null
-        this.status.setDisconnected()
-      });
-      const server  = await device.gatt.connect();
-      const service = await server.getPrimaryService(SERVICE_UUID);
-      this.conn = await service.getCharacteristic(CHAR_UUID);
+      const id = await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
+          reject(new Error('Bluetooth connection timed out'))
+        }, 10000)
+        BLE.onConnected = (id) => {
+          clearTimeout(timeout)
+          resolve(id)
+        }
+        BLE.onDisconnected = () => {
+          clearTimeout(timeout)
+          reject(new Error('Bluetooth disconnected'))
+        }
+        BLE.onError = (msg) => {
+          clearTimeout(timeout)
+          reject(new Error(`Bluetooth error: ${msg}`))
+        }
+        BLE.connect()
+      })
 
-      console.log('Connected to Bluetooth device:', device.name);
-      console.log('Characteristic:', this.conn);
+      JSAlert.alert(`Connected to BeckerBox via Bluetooth! Your controller ID is ${id}.`, 'Bluetooth Connected', JSAlert.Icons.Success)
       
-    } catch (error) {
-      console.error('Bluetooth connection failed:', error);
-      JSAlert.alert('Bluetooth connection failed. Please try again.', 'Connection Failed', JSAlert.Icons.Failed)
+    } catch (error: Error | any) {
+      if (error?.message?.toLowerCase().includes('already connected')) {
+        BLE.disconnect()
+        JSAlert.alert('An error occurred. Please try again.', '', JSAlert.Icons.Info)
+      } else {
+        console.error('Bluetooth connection failed:', error)
+        JSAlert.alert(error, 'Connection Failed', JSAlert.Icons.Failed)
+      }
       this.status.setDisconnected()
       return
     }
 
     try {
-      await this.sendHandshake()
+      this.sendHandshake()
+      await new Promise(r => setTimeout(r, 500)) // give it a moment to process the handshake before we start sending packets
+
     } catch (error) {
       console.error('Failed to send handshake over Bluetooth:', error)
       JSAlert.alert('Failed to communicate with the BeckerBox over Bluetooth. Please try again.', 'Communication Failed', JSAlert.Icons.Failed)
@@ -383,28 +396,24 @@ class BluetoothConnection {
   }
 
   private async sendHandshake() {
-    if (!this.conn) return
     const handshakePacket = { connectMeToSlot: this.remote.slot, packetTemplate: PACKET }
-    await this.conn.writeValueWithoutResponse(new TextEncoder().encode(
-      JSON.stringify(handshakePacket)
-    ))
+    BLE.write(JSON.stringify(handshakePacket))
   }
 
   private sending: boolean = false
   async sendPacket(packet: any) {
-    if (this.currentStatus !== 'connected' || !this.conn) return
+    if (this.currentStatus !== 'connected') return
     if (this.sending) return
     this.sending = true
 
-    await this.conn.writeValueWithoutResponse(
-      new TextEncoder().encode(JSON.stringify(
-        Object.values(packet)
-          .map(v => {
-            if (typeof v === 'boolean') return v ? 1 : 0
-            if (typeof v === 'number') return Math.round(v * 100) / 100
+    await BLE.write(JSON.stringify(
+      Object.values(packet)
+        .map(v => {
+          if (typeof v === 'boolean') return v ? 1 : 0
+          if (typeof v === 'number') return Math.round(v * 100) / 100
             return v
           })
-      ))
+      )
     )
     this.sending = false
   }

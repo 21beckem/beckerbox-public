@@ -1,5 +1,6 @@
 import { onMount, type Component } from 'solid-js'
 import { initializeGeneralGUIState } from './general-gui'
+import BLE from './ble-bridge'
 
 const icon = (name: string, style?: any, base: string = 'fa-solid') => <i class={`${base} ${name}`} style={style}></i>
 
@@ -188,7 +189,7 @@ const App: Component = () => {
             <div class="menu-btn" id="moreOptionsBtn">
               {icon('fa-gears')} More Options
             </div>
-            <div class={`menu-btn ${!navigator.bluetooth ? 'disabled' : ''}`} id="connectBluetoothBtn">
+            <div class="menu-btn" id="connectBluetoothBtn">
             </div>
             <div id="joinCode">
               <div class="text">Join Code</div>
