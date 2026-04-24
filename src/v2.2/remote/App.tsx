@@ -1,6 +1,5 @@
 import { onMount, type Component } from 'solid-js'
 import { initializeGeneralGUIState } from './general-gui'
-import BLE from './ble-bridge'
 
 const icon = (name: string, style?: any, base: string = 'fa-solid') => <i class={`${base} ${name}`} style={style}></i>
 

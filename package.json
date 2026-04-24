@@ -6,8 +6,8 @@
   "scripts": {
     "dev": "vite --host",
     "build": "tsc -b && vite build",
-    "build:preview": "tsc -b && vite build && vite preview",
-    "preview": "vite preview"
+    "build:preview": "tsc -b && vite build && vite preview --host",
+    "preview": "vite preview --host"
   },
   "dependencies": {
     "solid-js": "^1.9.12"
