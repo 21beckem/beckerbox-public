@@ -75,7 +75,6 @@ class RemoteGui {
       })
     }
 
-    GeneralGUI.setQRCode()
     bindClick('launchFullscreenBtn', () => GeneralGUI.attemptFullscreen())
     bindClick('menuBarsBtn', () => this.openMenu())
     bindClick('reconnectBtn', () => this.reconnectBtnPress())
@@ -85,6 +84,14 @@ class RemoteGui {
     bindClick('handDominanceBtn', () => this.toggleHandDominance())
     bindClick('moreOptionsBtn', () => this.showMoreOptions())
     bindClick('PowerOffBtn', () => this.powerOff())
+
+    if (!window.inAndroidApp) {
+      document.getElementById('downloadAppBtn')?.style.setProperty('display', 'unset')
+      bindClick('downloadAppBtn', () => {
+        const link = 'https://raw.githubusercontent.com/21beckem/beckerbox-android-remote/refs/heads/master/app/release/app-release.apk'
+        window.open(link, '_blank')
+      })
+    }
 
     this.setBposition()
     this.toggleHandDominance(this.handDominance)
@@ -520,6 +527,10 @@ export class Remote {
       this.GUI.showRemotePage()
       this.startSendingPackets()
       setTimeout(() => this.getGames(), 100)
+    })
+
+    this.conn.on('qr-link', (link: string) => {
+      GeneralGUI.setQRCode(link)
     })
 
     this.conn.on('no-available-slots', () => {

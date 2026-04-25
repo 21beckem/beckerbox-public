@@ -185,10 +185,13 @@ const App: Component = () => {
             </div>
             <div class="menu-btn" id="changeLayoutBtn"></div>
             <div class="menu-btn" id="handDominanceBtn"></div>
-            <div class="menu-btn" id="moreOptionsBtn">
+            <div class="menu-btn" id="moreOptionsBtn" style="display: none;">
               {icon('fa-gears')} More Options
             </div>
             <div class="menu-btn" id="connectBluetoothBtn">
+            </div>
+            <div class="menu-btn" id="downloadAppBtn" style="display: none;">
+              {icon('fa-google-play','','fa-brands')} Download App
             </div>
             <div id="joinCode">
               <div class="text">Join Code</div>

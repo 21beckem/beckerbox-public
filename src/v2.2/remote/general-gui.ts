@@ -62,18 +62,18 @@ export default class GeneralGUI {
     launchedFullScreen = true
   }
 
-  static setQRCode() {
+  static setQRCode(link: string = window.location.href) {
     const target = document.querySelector('#joinCode .qr-code')
     if (!target) return
 
     target.innerHTML = ''
     new window.QRCode(target, {
-      text: window.location.href,
+      text: link,
       width: 150,
       height: 150,
       colorDark: '#000000',
       colorLight: '#ffffff',
-      correctLevel: window.QRCode.CorrectLevel.H,
+      correctLevel: window.QRCode.CorrectLevel.M,
     })
   }
 
