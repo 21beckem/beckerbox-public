@@ -11,8 +11,7 @@ declare global {
     mobileConsole: any
     electron?: any
     remote?: any
-    refreshConnection: (force?: boolean) => void
-    disconnectRemote: () => void
+    UUID?: any
     allSlotsTaken?: boolean
     DEMOMODE?: boolean
     GeneralGUI?: any

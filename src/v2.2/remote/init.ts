@@ -5,23 +5,6 @@ import { startBeckerboxTour } from './tutorial'
 export function bootstrapRemote() {
   GoogleAnalytics.init()
 
-  window.remote = null
-
-  window.refreshConnection = (force = true) => {
-    if (force) {
-      window.location.reload()
-      return
-    }
-
-    window.remote?.destroy()
-    window.remote = new Remote()
-  }
-
-  window.disconnectRemote = () => {
-    window.remote?.destroy()
-    window.remote = null
-  }
-
-  window.refreshConnection(false)
+  window.remote = new Remote()
   startBeckerboxTour()
 }

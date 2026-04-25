@@ -174,10 +174,10 @@ const App: Component = () => {
             </div>
             <div class="title">BeckerBox<br />Remote</div>
             <hr />
-            <div class="menu-btn" id="reconnectBtn" onClick={() => window.refreshConnection(true)}>
+            <div class="menu-btn" id="reconnectBtn">
               {icon('fa-link')} Reconnect
             </div>
-            <div class="menu-btn" id="disconnectBtn" onClick={() => window.disconnectRemote()}>
+            <div class="menu-btn" id="disconnectBtn">
               {icon('fa-link-slash')} Disconnect
             </div>
             <div class="menu-btn player-one-only" id="changeDiscBtn">

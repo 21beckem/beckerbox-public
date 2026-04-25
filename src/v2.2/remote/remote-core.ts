@@ -1,9 +1,10 @@
 import GeneralGUI from './general-gui'
 import { startBeckerboxTour } from './tutorial'
 import BLE from './ble-bridge'
+import { UUID } from './UUID'
 
 const JSAlert = window.JSAlert
-const REFRESH = '<button class="wiiUIbtn" onclick="window.refreshConnection();" style="font-size: inherit; border-radius: 17px;">Refresh</button>'
+const REFRESH = '<button class="wiiUIbtn" onclick="window.location.reload();" style="font-size: inherit; border-radius: 17px;">Refresh</button>'
 
 const status = {
   connecting: `Connecting to BeckerBox host<br><br>Please wait...<br><br>If this takes more than 10 seconds, please ${REFRESH}`,
@@ -77,6 +78,8 @@ class RemoteGui {
     GeneralGUI.setQRCode()
     bindClick('launchFullscreenBtn', () => GeneralGUI.attemptFullscreen())
     bindClick('menuBarsBtn', () => this.openMenu())
+    bindClick('reconnectBtn', () => this.reconnectBtnPress())
+    bindClick('disconnectBtn', () => this.disconnectBtnPress())
     bindClick('changeDiscBtn', () => this.changeDisc())
     bindClick('changeLayoutBtn', () => this.changeLayout())
     bindClick('handDominanceBtn', () => this.toggleHandDominance())
@@ -278,6 +281,30 @@ class RemoteGui {
   closeMenu() {
     byId('side-menu').classList.add('closed')
   }
+
+  private async reconnectBtnPress() {
+    await new Promise<void>((resolve) => {
+      const panel = new JSAlert('Do you want to try to reconnect to the same player slot?', 'Reconnect')
+      panel.setIcon(JSAlert.Icons.Question)
+      panel.addButton('Yes').then(() => {
+        resolve()
+      })
+      panel.addButton('No').then(() => {
+        UUID.clear()
+        resolve()
+      })
+      panel.show()
+    })
+    
+    this.remote.destroy()
+    await new Promise(r => setTimeout(r, 100));
+    window.location.reload()
+  }
+
+  private disconnectBtnPress() {
+    UUID.clear()
+    this.remote.destroy()
+  }
 }
 
 
@@ -413,7 +440,7 @@ class BluetoothConnection {
   }
 
   private async sendHandshake() {
-    const handshakePacket = { connectMeToSlot: this.remote.slot, packetTemplate: PACKET }
+    const handshakePacket = { bindToUuid: UUID.get().uuid, packetTemplate: PACKET }
     BLE.write(JSON.stringify(handshakePacket))
   }
 
@@ -456,9 +483,12 @@ export class Remote {
     void this.connect()
   }
 
-  destroy() {
+  async destroy() {
     this.connOpen = false
     this.conn?.disconnect?.()
+
+    await new Promise(resolve => setTimeout(resolve, 500));
+
     this.socket = null
     this.conn = null
     this.GUI.setConnectingStatus(status.disconnected)
@@ -478,7 +508,7 @@ export class Remote {
     this.socket = ioFactory('/', {
       autoConnect: false,
       transports: ['websocket'],
-      query: { role: 'remote' },
+      query: { role: 'remote', uuid: UUID.get().uuid, uuidTimestamp: UUID.get().timestamp },
     })
     this.conn = this.socket
 
@@ -490,14 +520,16 @@ export class Remote {
       setTimeout(() => this.getGames(), 100)
     })
 
+    this.conn.on('no-available-slots', () => {
+      window.allSlotsTaken = true
+      this.GUI.setConnectingStatus(status.allSlotsTaken)
+    })
     this.conn.on('slotAssigned', (slot: number | null) => {
       this.connOpen = true
-      this.slot = slot
-      if (slot === null) {
-        window.allSlotsTaken = true
-        this.GUI.setConnectingStatus(status.allSlotsTaken)
-      } else {
+      console.log('Assigned to slot', slot)
+      if (Number.isInteger(slot)) {
         this.GUI.setSlot(slot)
+        this.slot = slot
       }
     })
 
@@ -522,10 +554,6 @@ export class Remote {
 
     const handleSocketError = (err: Error) => {
       this.connOpen = false
-      if (err.message?.toLowerCase().includes('connection is not open')) {
-        window.refreshConnection()
-        return
-      }
       this.GUI.setConnectingStatus(status.error(err))
     }
 
