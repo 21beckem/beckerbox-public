@@ -17,6 +17,7 @@ declare global {
     GeneralGUI?: any
     startWii: (startBtn: HTMLButtonElement) => void
     openGameMenu: () => Promise<void>
+    __androidAppClosing?: () => void
     PlayerManager?: any
     dataLayer?: unknown[]
     inAndroidApp?: boolean,

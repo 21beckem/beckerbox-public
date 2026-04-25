@@ -481,6 +481,8 @@ export class Remote {
 
     this.GUI.setConnectingStatus(status.connecting)
     void this.connect()
+
+    window.__androidAppClosing = () => this.destroy()
   }
 
   async destroy() {
