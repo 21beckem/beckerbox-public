@@ -15,7 +15,6 @@ export class Player {
   private healthState: 'healthy' | 'sick' | 'dead' = 'dead'
   private _connected = false
   private avatarSrc: string | null = null
-  private lastHomeBtnState = 0
 
   constructor(slot: number, parent: PlayerManager_template) {
     this.slot = slot
@@ -103,10 +102,6 @@ export class Player {
 
   newPacket(data: any) {
     this.pointer?.newPacket(data)
-    if (data.Home && !this.lastHomeBtnState) {
-      this.parent.homeBtnClick()
-    }
-    this.lastHomeBtnState = data.Home
   }
 
   remove() {

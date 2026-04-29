@@ -38,14 +38,6 @@ const steps = [
       onPopoverRender: () => window.remote.GUI.openMenu(),
     },
   },
-  {
-    element: '#PowerOffBtn',
-    popover: {
-      title: 'Power off',
-      description:
-        'This is how you turn off the system. It will simulate the console shutting down and close BeckerBox. (It will not shut down the whole computer.) Note: this button will only work when you are on the console system menu.',
-    },
-  },
   { element: '#reconnectBtn', popover: { title: 'Reconnect', description: 'If BeckerBox remote is ever acting weird, push this button to refresh the connection.' } },
   {
     element: '#disconnectBtn',

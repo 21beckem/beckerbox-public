@@ -3,10 +3,12 @@ const byId = (id: string) => document.getElementById(id) as HTMLElement | null
 
 let launchedFullScreen = false
 const onMobile = window.matchMedia('(any-pointer: coarse)').matches
-const searchParams = new URLSearchParams(window.location.search)
 
 export function initializeGeneralGUIState() {
-  if (window.inAndroidApp || !onMobile || searchParams.get('id') === 'dev-env') {
+  if (window.inAndroidApp) {
+    noSleep.enable()
+  }
+  if (window.inAndroidApp || !onMobile) {
     document.documentElement.classList.add('mobile')
     const openPrompt = byId('openFullScreenPrompt')
     if (openPrompt) {

@@ -3,24 +3,16 @@
  * Shows QR code + player slots. No footer (software info is Settings-only).
  */
 import PlayerSlot from '../components/PlayerSlot';
-import { For } from 'solid-js';
+import { For, Show } from 'solid-js';
 import * as Overlay from '../components/Overlay';
 
 async function onStartClick(e) {
+  Overlay.setHasBeenClosed(true);
   e.currentTarget.style.display = 'none';
-  Overlay.setOpen(false);
-  await Promise.race([
-    window.electron.startWii(),
-    new Promise(resolve => setTimeout(resolve, 3000)) // after 3s, hide the overlay even if the Wii hasn't started yet
-  ]);
-  setTimeout(() => Overlay.setBlackBackdrop(false), 1500);
+  window.PlayerManager.setMenuOpen(false);
 }
-
-function onHomeClick(e) {
-  Overlay.setOpen(false);
-  Overlay.setBlackBackdrop(true);
-  setTimeout(() => Overlay.setBlackBackdrop(false), 1000);
-  window.electron.goHome();
+async function onPowerOffClick(e) {
+  window.PlayerManager.powerOff();
 }
 
 export default function ConnectionView(props) {
@@ -63,6 +55,27 @@ export default function ConnectionView(props) {
         flex-direction: row;
         gap: 16px;
       `}>
+        <Show when={!Overlay.hasBeenClosed()}>
+          <button
+            style="
+              display: block;
+              margin: 0 auto 24px;
+              padding: 12px 32px;
+              font-size: 18px;
+              font-weight: 700;
+              color: white;
+              background: #2d9a6b;
+              border: none;
+              border-radius: 20px;
+              cursor: pointer;
+              box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+            "
+            class="pointer-clickable"
+            onClick={onStartClick}
+          >
+            Start
+          </button>
+        </Show>
         <button
           style="
             display: block;
@@ -78,9 +91,9 @@ export default function ConnectionView(props) {
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           "
           class="pointer-clickable"
-          onClick={onStartClick}
+          onClick={onPowerOffClick}
         >
-          Start
+          Power Off
         </button>
         <button
           style="
@@ -97,7 +110,7 @@ export default function ConnectionView(props) {
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
           "
           class="pointer-clickable"
-          onClick={onHomeClick}
+          onClick={() => window.electron.goHome()}
         >
           Go Home
         </button>

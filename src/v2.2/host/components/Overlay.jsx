@@ -22,7 +22,7 @@ import GameLibraryView from '../views/GameLibraryView';
 const [isOpen, setIsOpen] = createSignal(false);
 // 'main' | 'settings' | 'library'
 const [activeView, setActiveView] = createSignal('main');
-export const [blackBackdrop, setBlackBackdrop] = createSignal(true);
+export const [hasBeenClosed, setHasBeenClosed] = createSignal(false);
 
 export const goBack = () => setActiveView('main');
 export const setOpen = (open) => {
@@ -30,6 +30,7 @@ export const setOpen = (open) => {
     setOpen(open(isOpen()));
     return;
   }
+  if (!open) setHasBeenClosed(true);
   goBack();
   setIsOpen(open);
 };
@@ -37,11 +38,6 @@ export const setOpen = (open) => {
 
 
 export default function Overlay(props) {
-
-  createEffect(() => {
-    const open = isOpen();
-    window.electron.setPaused(open);
-  });
 
   onMount(() => {
     const t = setTimeout(() => setIsOpen(true), 1000);
@@ -70,7 +66,7 @@ export default function Overlay(props) {
           position: fixed; inset: 0;
           display: flex; align-items: center; justify-content: center;
           transition: background-color 700ms ease;
-          background-color: ${blackBackdrop() ? 'black' : (isOpen() ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)')};
+          background-color: ${isOpen() ? 'rgba(0,0,0,0.6)' : 'rgba(0,0,0,0)'};
         `}
         class={'overlay-backdrop'}
       >

@@ -83,7 +83,6 @@ class RemoteGui {
     bindClick('changeLayoutBtn', () => this.changeLayout())
     bindClick('handDominanceBtn', () => this.toggleHandDominance())
     bindClick('moreOptionsBtn', () => this.showMoreOptions())
-    bindClick('PowerOffBtn', () => this.powerOff())
 
     if (!window.inAndroidApp) {
       document.getElementById('downloadAppBtn')?.style.setProperty('display', 'unset')
@@ -223,25 +222,6 @@ class RemoteGui {
       gameMenu.close()
       this.remote.changeDisc(game.gameId)
     })
-  }
-
-  private async powerOff() {
-    const confirmed = await JSAlert.confirm('Are you sure you want to power off the BeckerBox?', 'Power Off', JSAlert.Icons.Warning)
-    if (!confirmed) return
-
-    const loader = JSAlert.loader('Powering off...')
-    try {
-      const result = await this.remote.powerOff()
-      loader.dismiss()
-      if (result !== false) {
-        this.remote.destroy()
-        this.alertPowerOff()
-      } else {
-        JSAlert.alert('Please switch to the system menu (Wii Menu) before you try to power off', 'Failed to power off', JSAlert.Icons.Failed)
-      }
-    } catch {
-      JSAlert.alert('BeckerBox returned an error while powering off. Please try again.', 'Request failed', JSAlert.Icons.Failed)
-    }
   }
 
   changeLayout(setTo: string | null = null) {
@@ -638,10 +618,5 @@ export class Remote {
 
   changeDisc(gameId: string) {
     this.conn.emit('data', { menuAction: 'changeDisc', gameId })
-  }
-
-  powerOff() {
-    if (!this.connOpen) return Promise.resolve(false)
-    return this.getResultFromConnection({ menuAction: 'powerOff' }, 10000)
   }
 }

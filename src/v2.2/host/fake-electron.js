@@ -20,9 +20,6 @@ if (window.electron === undefined) {
         startWii: () => {
             a('Start Wii', 'After purchasing BeckerBox, this would launch the Wii Menu\u2122. <p style="font-family: sans-serif; font-size:0.8em;">"Wii" is a registered Nintendo trademark. BeckerBox is not affiliated with or endorsed by Nintendo.</p>');
         },
-        setPaused: (to) => {
-            // do nothing
-        },
         goHome: () => {
             // do nothing
         },

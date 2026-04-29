@@ -169,9 +169,6 @@ const App: Component = () => {
         <div id="side-menu" class="closed">
           <div class="screen-dimmer" onClick={(e) => e.currentTarget.parentElement?.classList.add('closed')}></div>
           <div class="menu-content">
-            <div class="menu-btn player-one-only" id="PowerOffBtn" style="transform: translateY(-0.5rem);">
-              {icon('fa-power-off', { color: 'red' })} Power Off
-            </div>
             <div class="title">BeckerBox<br />Remote</div>
             <hr />
             <div class="menu-btn" id="reconnectBtn">

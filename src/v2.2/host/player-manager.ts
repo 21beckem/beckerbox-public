@@ -34,13 +34,13 @@ export class PlayerManager_template {
       if (!this.players[slot]) return
       this.players[slot].newPacket(packet)
     })
+    window.PlayerManager.onEvent('setOverlayOpen', (isOpen: boolean) => {
+      Overlay.setOpen(isOpen)
+    })
   }
 
   bBtnClick() {
     Overlay.goBack()
-  }
-  homeBtnClick() {
-    Overlay.setOpen((prev: boolean) => !prev)
   }
 }
 
