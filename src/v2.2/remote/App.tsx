@@ -177,9 +177,6 @@ const App: Component = () => {
             <div class="menu-btn" id="disconnectBtn">
               {icon('fa-link-slash')} Disconnect
             </div>
-            <div class="menu-btn player-one-only" id="changeDiscBtn">
-              {icon('fa-eject')} Change Disc
-            </div>
             <div class="menu-btn" id="changeLayoutBtn"></div>
             <div class="menu-btn" id="handDominanceBtn"></div>
             <div class="menu-btn" id="moreOptionsBtn" style="display: none;">

@@ -14,8 +14,7 @@ import {
   GridIcon, CarouselIcon, PlayersIcon
 } from '../components/Icons';
 import ViewHeader from '../components/ViewHeader';
-
-const COVER = 'https://art.gametdb.com/wii/cover3D/US/RSPE01.png';
+import * as Overlay from '../components/Overlay';
 
 const [ getGames, setGames ] = createSignal([]);
 
@@ -58,6 +57,20 @@ function GameCard(props) {
   const [hovered, setHovered] = createSignal(false);
   return (
     <div
+      onclick={async () => {
+        let res = await window.electron?.gameManager.launchGame(props.gameId);
+        if (!res?.success) {
+          Overlay.openAlert({
+            title: 'Launch Failed',
+            message: 'Failed to launch game: ' + (res?.error || 'Unknown error'),
+            buttons: [
+              { label: 'Dismiss', onClick: Overlay.closeAlert },
+            ],
+          });
+          return;
+        }
+        window.PlayerManager.setMenuOpen(false);
+      }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
       style={`
@@ -113,7 +126,6 @@ function GameCard(props) {
 }
 
 // ── Main view ─────────────────────────────────────────────────────────────
-const CAROUSEL_VISIBLE = 3;
 const GRID_COLS        = 3;
 const GRID_ROWS_VISIBLE = 3;
 
@@ -121,13 +133,9 @@ export default function GameLibraryView(props) {
   const [viewMode, setViewMode] = createSignal('grid'); // 'carousel' | 'grid'
   const [carouselIdx, setCarouselIdx] = createSignal(0);
   const [gridRow, setGridRow] = createSignal(0);
+  const [launchError, setLaunchError] = createSignal('');
 
   const totalRows = Math.ceil(getGames().length / GRID_COLS);
-
-  // Carousel
-  const canLeft  = () => carouselIdx() > 0;
-  const canRight = () => carouselIdx() + CAROUSEL_VISIBLE < getGames().length;
-  const visibleCarousel = () => getGames().slice(carouselIdx(), carouselIdx() + CAROUSEL_VISIBLE);
 
   // Grid
   const canUp   = () => gridRow() > 0;
@@ -152,37 +160,6 @@ export default function GameLibraryView(props) {
       {/* ── DIVIDER ── */}
       <div style="border-top: 1px solid rgba(0,0,0,0.07); flex-shrink: 0;" />
 
-      {/* ══ CAROUSEL MODE ══════════════════════════════════════════════════ */}
-      <div style={`
-        flex: 1; display: ${viewMode() === 'carousel' ? 'flex' : 'none'};
-        flex-direction: column; justify-content: center; overflow: hidden;
-      `}>
-        <div style="display: flex; align-items: center; gap: 10px;">
-          {/* Left arrow */}
-          <NavArrow onClick={() => setCarouselIdx(i => i - 1)} disabled={!canLeft()}>
-            <ChevronLeftIcon />
-          </NavArrow>
-
-          {/* Right arrow */}
-          <NavArrow onClick={() => setCarouselIdx(i => i + 1)} disabled={!canRight()}>
-            <ChevronRightIcon />
-          </NavArrow>
-        </div>
-
-        {/* Pagination dots */}
-        <div style="display: flex; justify-content: center; gap: 5px; padding-top: 10px;">
-          {Array.from({ length: getGames().length - CAROUSEL_VISIBLE + 1 }).map((_, i) => (
-            <div style={`
-              width: ${i === carouselIdx() ? 18 : 6}px; height: 6px; border-radius: 3px;
-              background: ${i === carouselIdx() ? '#2d9a6b' : '#ddd'};
-              transition: width 200ms ease, background 200ms ease;
-              cursor: pointer;
-            `}
-              onClick={() => setCarouselIdx(i)}
-            />
-          ))}
-        </div>
-      </div>
 
       {/* ══ GRID MODE ══════════════════════════════════════════════════════ */}
       <div style={`
@@ -204,7 +181,7 @@ export default function GameLibraryView(props) {
             gap: 18px;
           `}>
             {visibleGrid().map(game => (
-              <GameCard key={game.id} title={game.title} players={game.players} cardW={CARD_W_GRID} imageUrl={game.images?.cover.uri} />
+              <GameCard gameId={game.gameId} title={game.title} players={game.players} cardW={CARD_W_GRID} imageUrl={game.images?.cover.uri} />
             ))}
           </div>
         </div>

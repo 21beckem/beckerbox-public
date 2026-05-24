@@ -15,6 +15,7 @@ import { createEffect, createSignal, onMount } from 'solid-js';
 import TicketWrapper from './TicketWrapper';
 import SideButton from './SideButton';
 import { GearIcon, LibraryIcon } from './Icons';
+import Alert from './Alert';
 import ConnectionView from '../views/ConnectionView';
 import SettingsView from '../views/SettingsView';
 import GameLibraryView from '../views/GameLibraryView';
@@ -23,6 +24,27 @@ const [isOpen, setIsOpen] = createSignal(false);
 // 'main' | 'settings' | 'library'
 const [activeView, setActiveView] = createSignal('main');
 export const [hasBeenClosed, setHasBeenClosed] = createSignal(false);
+
+const [alertState, setAlertState] = createSignal({
+  open: false,
+  title: '',
+  message: '',
+  buttons: [],
+});
+
+export const openAlert = (options) => {
+  const config = typeof options === 'string' ? { message: options } : (options || {});
+  setAlertState({
+    open: true,
+    title: config.title || '',
+    message: config.message || '',
+    buttons: config.buttons || [],
+  });
+};
+
+export const closeAlert = () => {
+  setAlertState(prev => ({ ...prev, open: false }));
+};
 
 export const goBack = () => setActiveView('main');
 export const setOpen = (open) => {
@@ -180,6 +202,14 @@ export default function Overlay(props) {
           </SideButton>
         </div>
 
+        <Alert
+          open={alertState().open}
+          title={alertState().title}
+          message={alertState().message}
+          buttons={alertState().buttons}
+          onClose={closeAlert}
+        />
+
         
         {/* Pointers Container */}
         <div style={`
@@ -188,7 +218,7 @@ export default function Overlay(props) {
           left: 0;
           bottom: 0;
           right: 0;
-          z-index: 50;
+          z-index: 9999999999999;
           transition: opacity 200ms ease;
           pointer-events: none;
           opacity: ${isOpen() ? 1 : 0};

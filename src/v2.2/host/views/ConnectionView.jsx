@@ -2,16 +2,23 @@
  * ConnectionView - default main ticket view.
  * Shows QR code + player slots. No footer (software info is Settings-only).
  */
-import PlayerSlot from '../components/PlayerSlot';
 import { For, Show } from 'solid-js';
+import PlayerSlot from '../components/PlayerSlot';
 import * as Overlay from '../components/Overlay';
+import Button from '../components/Button';
 
 async function onStartClick(e) {
   Overlay.setHasBeenClosed(true);
   e.currentTarget.style.display = 'none';
   window.PlayerManager.setMenuOpen(false);
 }
-async function onPowerOffClick(e) {
+
+async function goHome() {
+  window.electron.goHome();
+  window.PlayerManager.setMenuOpen(false);
+}
+
+async function powerOff() {
   window.PlayerManager.powerOff();
 }
 
@@ -47,73 +54,43 @@ export default function ConnectionView(props) {
         </div>
       </div>
 
-
       {/* buttons */}
       <div style={`
         display: flex;
         width: 100%;
         flex-direction: row;
+        justify-content: space-around;
         gap: 16px;
       `}>
         <Show when={!Overlay.hasBeenClosed()}>
-          <button
-            style="
-              display: block;
-              margin: 0 auto 24px;
-              padding: 12px 32px;
-              font-size: 18px;
-              font-weight: 700;
-              color: white;
-              background: #2d9a6b;
-              border: none;
-              border-radius: 20px;
-              cursor: pointer;
-              box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-            "
-            class="pointer-clickable"
-            onClick={onStartClick}
-          >
-            Start
-          </button>
+            <Button onClick={onStartClick}>
+                Start
+            </Button>
         </Show>
-        <button
-          style="
-            display: block;
-            margin: 0 auto 24px;
-            padding: 12px 32px;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-            background: #2d9a6b;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-          "
-          class="pointer-clickable"
-          onClick={onPowerOffClick}
+        <Button
+            onClick={() => Overlay.openAlert({
+                title: 'Power Off Console?',
+                message: 'This will power off the host console.',
+                buttons: [
+                    { label: 'Cancel', onClick: Overlay.closeAlert },
+                    { label: 'Power Off', onClick: () => { Overlay.closeAlert(); powerOff(); } },
+                ],
+            })}
         >
-          Power Off
-        </button>
-        <button
-          style="
-            display: block;
-            margin: 0 auto 24px;
-            padding: 12px 32px;
-            font-size: 18px;
-            font-weight: 700;
-            color: white;
-            background: #2d9a6b;
-            border: none;
-            border-radius: 20px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-          "
-          class="pointer-clickable"
-          onClick={() => window.electron.goHome()}
+            Power Off
+        </Button>
+        <Button
+            onClick={() => Overlay.openAlert({
+                title: 'Go Home?',
+                message: 'This will return to the home screen.',
+                buttons: [
+                    { label: 'Cancel', onClick: Overlay.closeAlert },
+                    { label: 'Go Home', onClick: () => { Overlay.closeAlert(); goHome(); } },
+                ],
+            })}
         >
-          Go Home
-        </button>
+            Go Home
+        </Button>
       </div>
 
       {/* ── DIVIDER ── */}
