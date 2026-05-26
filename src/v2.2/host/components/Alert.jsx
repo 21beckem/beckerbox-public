@@ -30,7 +30,7 @@ export default function Alert(props) {
 									<p style="margin: 0 0 8px; font-size: 14px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #7aaa90;">
 										Alert
 									</p>
-									<h1 style="margin: 0; font-size: clamp(32px, 4vw, 56px); line-height: 1; font-weight: 900; color: #1a6344; letter-spacing: -0.04em;">
+									<h1 style="margin: 0; font-size: 6vw; line-height: 1; font-weight: 900; color: #1a6344; letter-spacing: -0.04em;">
 										{props.title}
 									</h1>
 								</div>
@@ -39,7 +39,7 @@ export default function Alert(props) {
 							<div style="border-top: 2px solid rgba(0,0,0,0.1);" />
 
 							<div style="flex: 1; overflow: auto; padding: 28px 4px 18px;">
-								<div style="font-size: clamp(18px, 2.2vw, 26px); font-weight: 600; line-height: 1.45; color: #244b36; white-space: pre-wrap;">
+								<div style="font-size: 3.2vw; font-weight: 600; line-height: 1.45; color: #579172; white-space: pre-wrap;">
 									<Show when={body()} fallback={<span />}>{body()}</Show>
 								</div>
 							</div>
@@ -51,13 +51,13 @@ export default function Alert(props) {
 									when={buttons().length > 0}
 									fallback={
 										<Show when={props.onClose}>
-											<Button onClick={props.onClose}>Close</Button>
+											<Button onClick={props.onClose} mega={true}>Close</Button>
 										</Show>
 									}
 								>
 									<For each={buttons()}>
 										{(button) => (
-											<Button onClick={button.onClick}>
+											<Button onClick={button.onClick} mega={true}>
 												{button.label ?? button.children}
 											</Button>
 										)}

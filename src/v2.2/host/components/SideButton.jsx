@@ -5,7 +5,7 @@
 export default function SideButton(props) {
   const isLeft = props.side === 'left';
 
-  const hiddenTrasnform = isLeft ? 'translateX(calc(-100% - 10px))' : 'translateX(calc(100% + 10px))';
+  const hiddenTransform = isLeft ? 'translateX(calc(-100% - 10px))' : 'translateX(calc(100% + 10px))';
 
   return (
     <button
@@ -15,7 +15,7 @@ export default function SideButton(props) {
         display: flex;
         align-items: center;
         justify-content: center;
-        width: 90px;
+        width: calc(15vw - 1rem);
         height: 140px;
         background: ${props.isActive ? 'rgba(255,255,255,0.72)' : 'rgba(255,255,255,0.26)'};
         backdrop-filter: blur(14px);
@@ -26,7 +26,7 @@ export default function SideButton(props) {
         color: ${props.isActive ? '#1a6344' : '#2e5e42'};
         cursor: pointer;
         transition: background 200ms ease, transform 150ms ease;
-        transform: ${props.overlayOpen ? 'translateX(0)' : hiddenTrasnform};
+        transform: ${props.isActive ? hiddenTransform : (props.overlayOpen ? 'translateX(0)' : hiddenTransform)};
         outline: none;
         box-shadow: ${isLeft ? '3px' : '-3px'} 0 16px rgba(0,0,0,0.18);
       `}

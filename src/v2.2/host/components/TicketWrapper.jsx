@@ -55,8 +55,8 @@ export default function TicketWrapper(props) {
         style={`position: relative; width: 100%; height: 100%; clip-path: url(#${clipId}); background: white; overflow: hidden;`}
       >
         <div style="position: absolute; inset: 0; pointer-events: none; z-index: 0; background: radial-gradient(ellipse at 25% 18%, rgba(195,235,215,0.55) 0%, transparent 55%), radial-gradient(ellipse at 75% 82%, rgba(185,228,208,0.40) 0%, transparent 50%), radial-gradient(ellipse at 50% 50%, rgba(220,245,232,0.25) 0%, transparent 70%);" />
-        <div style={`position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(0,0,0,0.07); top: 40%; pointer-events: none; z-index: 1; display: ${props.notchSide === 'none' ? 'none' : 'block'};`} />
-        <div style={`position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(0,0,0,0.07); top: 60%; pointer-events: none; z-index: 1; display: ${props.notchSide === 'none' ? 'none' : 'block'};`} />
+        {/* <div style={`position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(0,0,0,0.07); top: 40%; pointer-events: none; z-index: 1; display: ${props.notchSide === 'none' ? 'none' : 'block'};`} />
+        <div style={`position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(0,0,0,0.07); top: 60%; pointer-events: none; z-index: 1; display: ${props.notchSide === 'none' ? 'none' : 'block'};`} /> */}
         <div style="position: relative; z-index: 2; width: 100%; height: 100%;">
           {props.children}
         </div>

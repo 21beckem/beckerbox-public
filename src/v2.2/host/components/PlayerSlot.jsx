@@ -26,7 +26,6 @@ export default function PlayerSlot(props) {
         gap: 12px;
         border-radius: 16px;
         padding: 24px;
-        cursor: pointer;
         user-select: none;
         transition: all 0.2s ease;
         background: ${props.connected ? '#d4f0e2' : '#eeeeee'};

@@ -8,6 +8,7 @@
  * All navigation is via arrow buttons only (no mouse/touch scroll).
  */
 import { createSignal, Show } from 'solid-js';
+import Alert from '../components/Alert';
 import {
   ChevronLeftIcon, ChevronRightIcon,
   ChevronUpIcon, ChevronDownIcon,
@@ -18,9 +19,12 @@ import * as Overlay from '../components/Overlay';
 
 const [ getGames, setGames ] = createSignal([]);
 
-window.electron?.gameManager.getGames().then(games => {
-  setGames(games);
-});
+function refreshGames() {
+  window.electron?.gameManager.getGames().then(games => {
+    setGames(games);
+  });
+}
+refreshGames();
 
 // ── Arrow nav button ──────────────────────────────────────────────────────
 function NavArrow(props) {
@@ -58,6 +62,7 @@ function GameCard(props) {
   return (
     <div
       onclick={async () => {
+        Overlay.goBack();
         let res = await window.electron?.gameManager.launchGame(props.gameId);
         if (!res?.success) {
           Overlay.openAlert({
@@ -96,24 +101,26 @@ function GameCard(props) {
       </div>
 
       {/* Hover metadata overlay */}
-      <div style={`
-        position: absolute; inset: 0; border-radius: 10px; overflow: hidden; pointer-events: none;
-        opacity: ${hovered() ? 1 : 0}; transition: opacity 180ms ease;
-      `}>
-        <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);" />
-        <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 7px;">
-          <p style="color: white; font-size: 10px; font-weight: 800; line-height: 1.25; margin: 0 0 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
-            {props.title}
-          </p>
-          
-          <Show when={props.players}>
-            <div style="display: flex; align-items: center; gap: 3px;">
-              <div style="width: 10px; height: 10px; color: rgba(255,255,255,0.7);"><PlayersIcon /></div>
-              <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);">{props.players}</span>
-            </div>
-          </Show>
+      <Show when={props.players || props.title}>
+        <div style={`
+          position: absolute; inset: 0; border-radius: 10px; overflow: hidden; pointer-events: none;
+          opacity: ${hovered() ? 1 : 0}; transition: opacity 180ms ease;
+        `}>
+          <div style="position: absolute; inset: 0; background: linear-gradient(to top, rgba(0,0,0,0.78) 0%, rgba(0,0,0,0.3) 50%, transparent 100%);" />
+          <div style="position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 7px;">
+            <p style="color: white; font-size: 10px; font-weight: 800; line-height: 1.25; margin: 0 0 3px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;">
+              {props.title}
+            </p>
+            
+            <Show when={props.players}>
+              <div style="display: flex; align-items: center; gap: 3px;">
+                <div style="width: 10px; height: 10px; color: rgba(255,255,255,0.7);"><PlayersIcon /></div>
+                <span style="font-size: 9px; font-weight: 700; color: rgba(255,255,255,0.7);">{props.players}</span>
+              </div>
+            </Show>
+          </div>
         </div>
-      </div>
+      </Show>
 
       {/* Selection ring */}
       <div style={`
@@ -126,14 +133,11 @@ function GameCard(props) {
 }
 
 // ── Main view ─────────────────────────────────────────────────────────────
-const GRID_COLS        = 3;
-const GRID_ROWS_VISIBLE = 3;
+const GRID_COLS         = 4;
+const GRID_ROWS_VISIBLE = 2;
 
 export default function GameLibraryView(props) {
-  const [viewMode, setViewMode] = createSignal('grid'); // 'carousel' | 'grid'
-  const [carouselIdx, setCarouselIdx] = createSignal(0);
   const [gridRow, setGridRow] = createSignal(0);
-  const [launchError, setLaunchError] = createSignal('');
 
   const totalRows = Math.ceil(getGames().length / GRID_COLS);
 
@@ -142,20 +146,58 @@ export default function GameLibraryView(props) {
   const canDown = () => gridRow() + GRID_ROWS_VISIBLE < totalRows;
   const visibleGrid = () => getGames().slice(gridRow() * GRID_COLS, (gridRow() + GRID_ROWS_VISIBLE) * GRID_COLS);
 
-  const toggleView = () => {
-    setViewMode(m => m === 'carousel' ? 'grid' : 'carousel');
-    setCarouselIdx(0);
-    setGridRow(0);
-  };
-
   // Card dimensions — fixed px so they're always portrait and look sharp
   const CARD_W_CAROUSEL = 112;
-  const CARD_W_GRID     = 108;
+  const CARD_W_GRID     = 150;
 
+
+  const [getInstallInProgress, setInstallInProgress] = createSignal(false);
+  const [getInstallMessage, setInstallMessage] = createSignal('');
+  async function onImportClick() {
+    const selectionResult = await window.electron?.gameManager.selectGameFile();
+    if (!selectionResult.success) {
+      Overlay.openAlert({
+        title: 'Import Failed',
+        message: 'Failed to import game: ' + (selectionResult?.error || 'Unknown error'),
+      });
+      return;
+    }
+    
+    setInstallInProgress(true);
+    const importResult = await window.electron?.gameManager.installNewGame(selectionResult.filePath, (progress) => {
+      setInstallMessage(progress);
+    });
+    setInstallInProgress(false);
+    if (!importResult.success) {
+      Overlay.openAlert({
+        title: 'Import Failed',
+        message: 'Failed to import game: ' + (importResult?.error || 'Unknown error'),
+      });
+      return;
+    }
+    refreshGames();
+  }
   return (
     <div style="display: flex; flex-direction: column; height: 100%; padding: 20px 28px 20px; overflow: hidden;">
 
-      <ViewHeader onBack={props.onBack}>Game Library</ViewHeader>
+      <Alert
+        open={getInstallInProgress()}
+        title="Installing Game. Please Wait..."
+        message={getInstallMessage()}
+        buttons={[]}
+      />
+
+      <ViewHeader
+        onBack={props.onBack}
+        actions={[
+          {
+            label: 'Import New Game',
+            onClick: onImportClick
+          }
+        ]}
+      >
+        Game Library
+      </ViewHeader>
 
       {/* ── DIVIDER ── */}
       <div style="border-top: 1px solid rgba(0,0,0,0.07); flex-shrink: 0;" />
@@ -163,7 +205,7 @@ export default function GameLibraryView(props) {
 
       {/* ══ GRID MODE ══════════════════════════════════════════════════════ */}
       <div style={`
-        flex: 1; display: ${viewMode() === 'grid' ? 'flex' : 'none'};
+        flex: 1; display: flex;
         flex-direction: column; overflow: hidden;
       `}>
         {/* Up arrow */}

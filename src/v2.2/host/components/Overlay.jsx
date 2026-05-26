@@ -1,16 +1,3 @@
-/**
- * Overlay - orchestrates the full UI:
- *  • Main ticket (always centered, 70vw × 80vh)
- *  • Settings panel (slides in from LEFT, 44vw × 80vh, notch on right)
- *  • Library panel  (slides in from RIGHT, 44vw × 80vh, notch on left)
- *  • Side buttons   (fixed to left/right screen edges, vertically centered)
- *
- * When a side panel is open:
- *  - Main ticket scales to 92% and darkens via an inner overlay div
- *  - Side panel slides in front from off-screen
- *
- * Nothing is ever added/removed from the DOM — only transforms & opacity change.
- */
 import { createEffect, createSignal, onMount } from 'solid-js';
 import TicketWrapper from './TicketWrapper';
 import SideButton from './SideButton';
@@ -79,7 +66,7 @@ export default function Overlay(props) {
     <>
       <style>
         {`.overlay-backdrop * {
-          pointer-events: ${isOpen() ? 'auto' : 'none'}
+          pointer-events: ${isOpen() ? 'inherit' : 'none'}
         }`}
       </style>
       {/* ── Backdrop ──────────────────────────────────────────────────────── */}
@@ -102,6 +89,7 @@ export default function Overlay(props) {
             z-index: 20;
             transition: transform 500ms cubic-bezier(0.34, 1.05, 0.64, 1), opacity 700ms ease;
             transform: scale(${isOpen() ? (sideOpen() ? 0.92 : 1) : 0.95});
+            pointer-events: ${(isOpen() && !sideOpen()) ? 'inherit' : 'none'};
             opacity: ${isOpen() ? 1 : 0};
           `}
         >
@@ -127,7 +115,7 @@ export default function Overlay(props) {
             position: fixed;
             top: 50%;
             left: 0;
-            width: 44vw;
+            width: 70vw;
             height: 80vh;
             z-index: 30;
             transition: transform 480ms cubic-bezier(0.34, 1.1, 0.64, 1), opacity 700ms ease;
@@ -156,7 +144,7 @@ export default function Overlay(props) {
             position: fixed;
             top: 50%;
             right: 0;
-            width: 44vw;
+            width: 70vw;
             height: 80vh;
             z-index: 30;
             transition: transform 480ms cubic-bezier(0.34, 1.1, 0.64, 1);

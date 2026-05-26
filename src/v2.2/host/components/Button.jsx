@@ -3,7 +3,7 @@ export default function Button(props) {
     <button
       class='pointer-clickable'
       onClick={props.onClick}
-      style="
+      style={`
         display: inline-flex;
         align-items: center;
         gap: 14px;
@@ -13,12 +13,17 @@ export default function Button(props) {
         border-radius: 16px;
         cursor: pointer;
         transition: all 150ms ease;
-        font-family: inherit; font-size: 16px;
-      "
+        font-family: inherit;
+        font-size: 18px;
+        font-weight: 700;
+        color: #1a6344;
+        ${props.mega ? 'padding: 18px 32px; font-size: 3.2vw; border-radius: 20px;' : ''}
+        ${props.style || ''}
+      `}
       onMouseEnter={e => e.currentTarget.style.background = 'rgba(0,0,0,0.12)'}
       onMouseLeave={e => e.currentTarget.style.background = 'rgba(0,0,0,0.06)'}
     >
-      <span style="font-size: 18px; font-weight: 700; color: #1a6344;">
+      <span>
         {props.children}
       </span>
     </button>
