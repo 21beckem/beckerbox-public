@@ -216,6 +216,14 @@ html:fullscreen #openFullScreenPrompt {
 	width: 80%;
 	margin: 0 auto;
 }
+#side-menu .menu-content .avatar-preview {
+	width: 80px;
+	height: 80px;
+	border-radius: 50%;
+	background-color: var(--light-off);
+	margin: 0 auto 1rem;
+	background-size: cover;
+}
 #side-menu .menu-btn {
 	font-size: 1.2rem;
 	cursor: pointer;

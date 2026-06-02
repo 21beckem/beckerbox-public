@@ -169,8 +169,12 @@ const App: Component = () => {
         <div id="side-menu" class="closed">
           <div class="screen-dimmer" onClick={(e) => e.currentTarget.parentElement?.classList.add('closed')}></div>
           <div class="menu-content">
+            <div class="avatar-preview"></div>
             <div class="title">BeckerBox<br />Remote</div>
             <hr />
+            <div class="menu-btn" id="avatarEditorBtn">
+              {icon('fa-person')} Avatar Editor
+            </div>
             <div class="menu-btn" id="reconnectBtn">
               {icon('fa-link')} Reconnect
             </div>

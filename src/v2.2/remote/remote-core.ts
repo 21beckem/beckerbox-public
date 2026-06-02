@@ -1,3 +1,5 @@
+// @ts-ignore
+import MiiCustomizer from 'https://21beckem.github.io/becker-mii-editor/src/index.js';
 import GeneralGUI from './general-gui'
 import { startBeckerboxTour } from './tutorial'
 import BLE from './ble-bridge'
@@ -66,6 +68,8 @@ class RemoteGui {
   remoteLayout = Number(sessionStorage.getItem('last-remote-layout') || 1)
   handDominance = sessionStorage.getItem('last-hand-dominance') || 'right'
   bStates = [0, 0]
+  private miiEditorContainer: HTMLDivElement | null = null;
+  private miiEditorApp: MiiCustomizer | null = null;
 
   constructor(remote: Remote) {
     this.remote = remote
@@ -77,6 +81,7 @@ class RemoteGui {
 
     bindClick('launchFullscreenBtn', () => GeneralGUI.attemptFullscreen())
     bindClick('menuBarsBtn', () => this.openMenu())
+    bindClick('avatarEditorBtn', () => this.openMiiEditor())
     bindClick('reconnectBtn', () => this.reconnectBtnPress())
     bindClick('disconnectBtn', () => this.disconnectBtnPress())
     bindClick('changeDiscBtn', () => this.changeDisc())
@@ -91,6 +96,9 @@ class RemoteGui {
         window.open(link, '_blank')
       })
     }
+    
+    this.makeMiiEditor()
+    this.updateAvatarPreview();
 
     this.setBposition()
     this.toggleHandDominance(this.handDominance)
@@ -259,6 +267,44 @@ class RemoteGui {
       this.closeMenu()
     })
     panel.show()
+  }
+
+  private makeMiiEditor() {
+    this.miiEditorContainer = document.createElement('div')
+    this.miiEditorContainer.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 1000;
+      display: none;
+    `
+    document.body.appendChild(this.miiEditorContainer)
+    this.miiEditorApp = MiiCustomizer.init({
+      container: this.miiEditorContainer,
+      // optional: 46-byte raw Studio data or 47-byte obfuscated Studio data
+      initialData: localStorage.getItem('miiData') ? JSON.parse(localStorage.getItem('miiData') || '') : undefined,
+      showSaveButton: true,
+      onSave: (data: ArrayBuffer) => {
+        localStorage.setItem('miiData', JSON.stringify(Array.from(new Uint8Array(data))))
+        this.updateAvatarPreview()
+        if (this.miiEditorContainer)
+          this.miiEditorContainer.style.display = 'none'
+      }
+    });
+  }
+
+  private openMiiEditor() {
+    if (this.miiEditorContainer)
+      this.miiEditorContainer.style.display = 'block'
+  }
+
+  private updateAvatarPreview() {
+    if (!this.miiEditorApp) return
+    const preview = document.querySelector('.avatar-preview') as HTMLElement | null
+    if (!preview) return
+    preview.style.backgroundImage = `url(${this.miiEditorApp.getPreviewUrl()})`
   }
 
   openMenu() {
