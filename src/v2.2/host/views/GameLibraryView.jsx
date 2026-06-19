@@ -139,11 +139,11 @@ const GRID_ROWS_VISIBLE = 2;
 export default function GameLibraryView(props) {
   const [gridRow, setGridRow] = createSignal(0);
 
-  const totalRows = Math.ceil(getGames().length / GRID_COLS);
+  const totalRows = () => Math.ceil(getGames().length / GRID_COLS);
 
   // Grid
   const canUp   = () => gridRow() > 0;
-  const canDown = () => gridRow() + GRID_ROWS_VISIBLE < totalRows;
+  const canDown = () => gridRow() + GRID_ROWS_VISIBLE < totalRows();
   const visibleGrid = () => getGames().slice(gridRow() * GRID_COLS, (gridRow() + GRID_ROWS_VISIBLE) * GRID_COLS);
 
   // Card dimensions — fixed px so they're always portrait and look sharp
@@ -178,7 +178,7 @@ export default function GameLibraryView(props) {
     refreshGames();
   }
   return (
-    <div style="display: flex; flex-direction: column; height: 100%; padding: 20px 28px 20px; overflow: hidden;">
+    <div style="display: flex; flex-direction: column; height: calc(100% - 28px); padding: 20px 28px 20px; overflow: hidden;">
 
       <Alert
         open={getInstallInProgress()}
@@ -233,11 +233,6 @@ export default function GameLibraryView(props) {
           <NavArrow onClick={() => setGridRow(r => r + 1)} disabled={!canDown()}>
             <ChevronDownIcon />
           </NavArrow>
-        </div>
-
-        {/* Row indicator */}
-        <div style="text-align: center; font-size: 10px; font-weight: 600; color: #bbb; padding-bottom: 4px;">
-          {gridRow() + 1}–{Math.min(gridRow() + GRID_ROWS_VISIBLE, totalRows)} of {totalRows} rows
         </div>
       </div>
 
