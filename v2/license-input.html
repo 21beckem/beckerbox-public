@@ -339,6 +339,13 @@ function updateUI(thisValidity=false) {
         confirmTransferContainer.style.display = 'none';
         successContainer.style.display = 'none';
         pageTitle.textContent = 'Your license key is invalid';
+    } else if (validity.reason === 'network') {
+        keyInputContainer.style.display = 'none';
+        confirmTransferContainer.style.display = 'none';
+        successContainer.style.display = 'none';
+        pageTitle.textContent = 'This version of BeckerBox is out of date.';
+        pageSubtitle.innerHTML = 'Please download the latest version to continue using BeckerBox <a href="https://box.beckersuite.com/download#download" target="_blank">here</a>.';
+        return;
     } else {
         keyInputContainer.style.display = 'flex';
         confirmTransferContainer.style.display = 'none';
